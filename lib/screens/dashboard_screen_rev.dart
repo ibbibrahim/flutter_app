@@ -95,16 +95,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     child: selectedCard == null
-                        ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                        ? GridView.count(
+                      crossAxisCount: MediaQuery.of(context).orientation == Orientation.portrait
+                          ? 3 // 2 cards per row in portrait mode
+                          : 4, // 3 cards per row in landscape mode
+                      childAspectRatio: 1, // Make cards square
+                      crossAxisSpacing: 16.0,
+                      mainAxisSpacing: 16.0,
+                      padding: EdgeInsets.all(16.0),
                       children: <Widget>[
-                        _buildCard('Basic Information', () {
+                        _buildCard('Basic Information', Icons.info, () {
                           _showCard('Basic Information');
                         }),
-                        _buildCard('Parent Information', () {
+                        _buildCard('Parent Information', Icons.person_2, () {
                           _showCard('Parent Information');
                         }),
-                        _buildCard('Enrollment Information', () {
+                        _buildCard('Enrollment Information', Icons.school, () {
                           _showCard('Enrollment Information');
                         }),
                       ],
@@ -127,21 +133,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildCard(String title, VoidCallback onTap) {
-    return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      child: ListTile(
-        title: Text(
-          title,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+  Widget _buildCard(String title, IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
         ),
-        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Icon(
+              icon,
+              size: 35, // Adjust size as needed
+              color: Colors.blueAccent, // Adjust color as needed
+            ),
+            SizedBox(height: 8.0),
+            Align(
+              alignment: Alignment.center,
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 8, // Adjust font size as needed
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center, // Center align text
+              ),
+            ),
+            SizedBox(height: 16.0),
+          ],
+        ),
       ),
     );
   }
