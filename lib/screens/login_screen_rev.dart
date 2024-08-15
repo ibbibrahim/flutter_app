@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:crypto/crypto.dart';  // Add this line
+import 'package:crypto/crypto.dart';
+import 'package:login_portal/screens/SiblingInformationScreen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -11,7 +12,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _studentIdController = TextEditingController();
   final TextEditingController _fatherQatarIdController = TextEditingController();
 
   bool _isLoading = false;
@@ -27,27 +27,38 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       // Hash the inputs
-      String hashedStudentId = _generateMd5(_studentIdController.text);
-      String hashedFatherQatarId = _generateMd5(_fatherQatarIdController.text);
+
+      String hashedFatherQatarId = _fatherQatarIdController.text;
 
       final response = await http.get(
         Uri.parse(
-          'https://175a-37-211-16-85.ngrok-free.app/tng_api/index.php?student_id=${hashedStudentId}&father_qatar_id=${hashedFatherQatarId}',
+          'https://175a-37-211-16-85.ngrok-free.app/tng_api/index.php?father_qatar_id=${_fatherQatarIdController.text}',
         ),
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data['error'] != null) {
+        if (false) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Login failed! ${data['error']}')),
           );
         } else {
-          Navigator.pushReplacementNamed(
-            context,
-            '/dashboard',
-            arguments: data,
-          );
+          if (data is List && data.length > 1) {
+            // Multiple siblings
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SiblingInformationScreen(siblings: data),
+              ),
+            );
+          } else {
+            // Single record
+            Navigator.pushReplacementNamed(
+              context,
+              '/dashboard',
+              arguments: data[0],
+            );
+          }
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -95,26 +106,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             key: _formKey,
                             child: Column(
                               children: <Widget>[
-                                TextFormField(
-                                  controller: _studentIdController,
-                                  decoration: InputDecoration(
-                                    labelText: 'Student ID',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter.digitsOnly
-                                  ],
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter your Student ID';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                SizedBox(height: 30),
                                 TextFormField(
                                   controller: _fatherQatarIdController,
                                   decoration: InputDecoration(
