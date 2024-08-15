@@ -64,8 +64,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        color: Colors.lightBlueAccent,
         image: DecorationImage(
-            image: AssetImage('assets/login.png'), fit: BoxFit.cover),
+            image: AssetImage('assets/pngwing3.png'), fit: BoxFit.cover),
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
