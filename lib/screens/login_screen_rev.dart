@@ -32,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final response = await http.get(
         Uri.parse(
-          'https://175a-37-211-16-85.ngrok-free.app/tng_api/index.php?father_qatar_id=${_fatherQatarIdController.text}',
+          'https://bfd7-37-211-16-85.ngrok-free.app/tng_api/index.php?father_qatar_id=${_fatherQatarIdController.text}',
         ),
       );
 
