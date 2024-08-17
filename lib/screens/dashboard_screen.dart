@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:http/http.dart' as http;
+
 
 
 class DashboardScreen extends StatefulWidget {
@@ -32,11 +34,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic> studentData =
-    ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final args = ModalRoute.of(context)!.settings.arguments as Map;
+    final Map<String, dynamic> studentData = args['student'];
+    final hasSiblings = args['hasSiblings'] ?? false;
+    final siblingsList = args['siblings'] ?? null;
 
     String studentFullName =
-        '${studentData['FirstName']}${studentData['MiddleName']} ${studentData['LastName']}';
+        '${studentData['Student Full Name']}';
     String fatherFullName =
         '${studentData['FatherFirstName']}${studentData['FatherMiddleName']} ${studentData['FatherLastName']}';
     String motherFullName =
@@ -57,6 +61,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
+
           Positioned(
             top: 60,
             right: 0,
@@ -93,14 +98,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
+          _buildStudentAvatar(studentData),
           Padding(
-            padding: const EdgeInsets.only(top: 40.0),
+            padding: const EdgeInsets.only(top: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 SizedBox(height: 10),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 100.0),
                   child: AnimatedTextKit(
                     animatedTexts: [
                       TypewriterAnimatedText(
@@ -137,7 +143,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 80.0),
                   child: Text(
                     '${studentData['StudentID']} - $studentFullName',
                     style: TextStyle(
@@ -148,16 +154,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 80.0),
                   child: Text(
                     '${studentData['Section']} - ${studentData['Campus']}',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: FontWeight.normal,
                       color: Colors.white,
                     ),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 80.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Bus Details
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.directions_bus, // Bus icon
+                            color: Colors.white,
+                            size: 18.0,
+                          ),
+                          SizedBox(width: 4.0), // Add a small gap between the icon and text
+                          Text(
+                            studentData['Bus'] != null
+                                ? '- ${studentData['Bus']}' // Show the bus number if assigned
+                                : '- N/A', // Show "Not assigned" if the bus is null
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
                 SizedBox(height: 10),
                 Expanded(
                   child: Container(
@@ -165,8 +201,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30.0),
-                        topRight: Radius.circular(30.0),
+                        topLeft: Radius.circular(10.0),
+                        topRight: Radius.circular(10.0),
                       ),
                     ),
                     child: Stack(
@@ -174,8 +210,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         selectedCard == null
                             ? GridView.count(
                           crossAxisCount: MediaQuery.of(context).orientation == Orientation.portrait
-                              ? 3 // 2 cards per row in portrait mode
-                              : 4, // 3 cards per row in landscape mode
+                              ? 4 // 2 cards per row in portrait mode
+                              : 5, // 3 cards per row in landscape mode
                           childAspectRatio: 1, // Make cards square
                           crossAxisSpacing: 16.0,
                           mainAxisSpacing: 16.0,
@@ -190,6 +226,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             _buildCard(Icons.school, () {
                               _showCard('Enrollment Information');
                             }),
+                            if (hasSiblings)
+                              _buildCard(Icons.groups_2, () {
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  '/siblings',
+                                  arguments: siblingsList,
+                                );
+                              }),
                           ],
                         )
                             : _buildDetailsView(
@@ -229,26 +273,87 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildGenderAvatar(Map<String, dynamic> studentData) {
-    String avatarPath = studentData['G'] == 'M'
-        ? 'assets/boy.png'
-        : 'assets/girl.png';
+  Widget _buildStudentAvatar(Map<String, dynamic> studentData) {
+    String studentId = studentData['StudentID'].toString();
+
+    // The base URL for the student photos
+    String imageUrlBase = 'https://pers.tngqatar.online/Controler/Public/images/studentPhotos/';
+
+    // Try both JPG and jpg extensions
+    String imageUrlJpg = '$imageUrlBase$studentId.jpg';
+    String imageUrlJPG = '$imageUrlBase$studentId.JPG';
 
     return Positioned(
-      top: 50,
-      left: 20,
+      top: 45,
+      left: 5,
       child: Padding(
         padding: const EdgeInsets.all(4.0), // Adjust the padding as needed
-        child: CircleAvatar(
-          radius: 30.0,
-          backgroundColor: Colors.white, // Optional: add a background color to the border
-          child: CircleAvatar(
-            radius: 26.0, // Slightly smaller to create the padding effect
-            backgroundImage: AssetImage(avatarPath),
+        child: Container(
+          width: 60.0, // Adjust width as needed
+          height: 60.0, // Adjust height as needed
+          decoration: BoxDecoration(
+            color: Colors.white, // Optional: add a background color
+            borderRadius: BorderRadius.circular(8.0), // Adjust border radius for rectangle
+            image: DecorationImage(
+              fit: BoxFit.cover,
+              image: NetworkImage(imageUrlJpg),
+            ),
+          ),
+          child: FutureBuilder<bool>(
+            future: _checkImageExists(imageUrlJpg), // Check for jpg first
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.data == true) {
+                  return Container(); // Return an empty container if image exists
+                } else {
+                  return FutureBuilder<bool>(
+                    future: _checkImageExists(imageUrlJPG), // Check for JPG if jpg fails
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        if (snapshot.data == true) {
+                          return Container(); // Return an empty container if image exists
+                        } else {
+                          // If both fail, fallback to a gender-based avatar
+                          String avatarPath = studentData['G'] == 'M'
+                              ? 'assets/boy.png'
+                              : 'assets/girl.png';
+                          return Container(
+                            width: 60.0, // Match the dimensions of the avatar
+                            height: 60.0,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8.0),
+                              image: DecorationImage(
+                                fit: BoxFit.cover,
+                                image: AssetImage(avatarPath),
+                              ),
+                            ),
+                          );
+                        }
+                      } else {
+                        return Center(child: CircularProgressIndicator()); // Show a loading indicator while checking the image
+                      }
+                    },
+                  );
+                }
+              } else {
+                return Center(child: CircularProgressIndicator()); // Show a loading indicator while checking the image
+              }
+            },
           ),
         ),
       ),
     );
+  }
+
+
+  Future<bool> _checkImageExists(String url) async {
+    try {
+      final response = await http.head(Uri.parse(url));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
   }
 
   Widget _buildCard(IconData icon, VoidCallback onTap) {
@@ -295,7 +400,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ['QID', studentData['QID']],
                       ['DOB', studentData['DOB']],
                       ['Age', studentData['Age'].toString()],
-                      ['Gender', studentData['G'] == 'M' ? 'Male' : 'Female'],
                       ['Religion', studentData['ReligionID'] == '1' ? 'Islam' : 'Other'],
                     ], onBack),
 
@@ -339,7 +443,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8.0),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -387,7 +491,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
 
   Future<void> _logout() async {
     //Clear any saved session data (e.g., SharedPreferences)

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
-import 'package:login_portal/screens/SiblingInformationScreen.dart';
+import 'package:login_portal/screens/sibling_information_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -32,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final response = await http.get(
         Uri.parse(
-          'https://bfd7-37-211-16-85.ngrok-free.app/tng_api/index.php?father_qatar_id=${_fatherQatarIdController.text}',
+          'https://f4f7-37-211-16-85.ngrok-free.app/tng_api/index.php?father_qatar_id=${_fatherQatarIdController.text}',
         ),
       );
 
@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Navigator.pushReplacementNamed(
               context,
               '/dashboard',
-              arguments: data[0],
+              arguments: {'student': data[0], 'hasSiblings': false},
             );
           }
         }

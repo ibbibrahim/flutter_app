@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SiblingInformationScreen extends StatelessWidget {
   final List<dynamic> siblings;
@@ -22,18 +23,37 @@ class SiblingInformationScreen extends StatelessWidget {
               ),
             ),
           ),
+          Positioned(
+            top: 60,
+            right: 0,
+            child: Material(
+              shape: CircleBorder(),
+              color: Colors.transparent,
+              child: IconButton(
+                icon: Icon(
+                  Icons.logout,
+                  color: Colors.white,
+                ),
+                onPressed: (){},
+                iconSize: 25.0,
+                padding: EdgeInsets.all(5.0),
+                splashRadius: 30.0,
+              ),
+            ),
+          ),
+
           Padding(
-            padding: const EdgeInsets.only(top: 40.0),
+            padding: const EdgeInsets.only(top: 70.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                SizedBox(height: 20),
+                SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
                     'Sibling Information',
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -58,23 +78,23 @@ class SiblingInformationScreen extends StatelessWidget {
                             Navigator.pushReplacementNamed(
                               context,
                               '/dashboard',
-                              arguments: siblings[index],
+                              arguments: {'student': siblings[index],'siblings': siblings ,'hasSiblings': true},
                             );
                           },
                           child: Card(
-                            elevation: 5,
+                            elevation: 2,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15.0),
                             ),
                             child: ListTile(
                               title: Text(
-                                siblings[index]['FirstName'] ?? 'N/A',
+                                siblings[index]['Student Full Name'] ?? 'N/A',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               subtitle: Text(
-                                'ID: ${siblings[index]['StudentID']} - Section: ${siblings[index]['Section']}',
+                                '${siblings[index]['StudentID']} - ${siblings[index]['Section']}',
                               ),
                               trailing: Icon(Icons.arrow_forward_ios),
                             ),
@@ -90,5 +110,14 @@ class SiblingInformationScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    // Clear any saved session data (e.g., SharedPreferences)
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    // Navigate back to the login screen
+    Navigator.pushReplacementNamed(context, '/');
   }
 }
