@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:login_portal/screens/policies_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:http/http.dart' as http;
+
 import 'package:login_portal/screens/basic_information_screen.dart';
+import 'package:login_portal/screens/attendance_screen.dart';
+import 'package:login_portal/screens/health_profile_screen.dart';
+import 'package:login_portal/screens/bus_detail_screen.dart';
+import 'package:login_portal/screens/course_screen.dart';
+import 'package:login_portal/screens/student_achievements_screen.dart';
+import 'package:login_portal/screens/student_invoice_screen_copy.dart';
 
 
 class DashboardScreen extends StatefulWidget {
@@ -145,12 +153,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 80.0),
                   child: Row(
                     children: [
-                      Text(
-                        '${studentData['StudentID']} - $studentFullName -',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      Flexible(
+                        child: Text(
+                          '${studentData['StudentID']} - $studentFullName',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Image.asset(
@@ -164,13 +175,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 80.0),
-                  child: Text(
-                    '${studentData['Section']} - ${studentData['Campus']}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.white,
-                    ),
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          '${studentData['Section']} - ${studentData['Campus']}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.white,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Padding(
@@ -240,9 +258,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             _buildCard(Icons.person_2, () {
                               _showCard('Parent Information');
                             }),
-                            _buildCard(Icons.school, () {
-                              _showCard('Enrollment Information');
+                            // _buildCard(Icons.school, () {
+                            //   _showCard('Enrollment Information');
+                            // }),
+                            _buildCard(Icons.check_circle, () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AttendanceScreen(
+                                    studentId: studentData['StudentID'].toString(), // Pass the student ID to AttendanceScreen
+                                  ),
+                                ),
+                              );
                             }),
+                            _buildCard(Icons.health_and_safety, () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => HealthProfileScreen(
+                                    studentId: studentData['StudentID'].toString(), // Passing the student ID to HealthProfileScreen
+                                  ),
+                                ),
+                              );
+                            }),
+                            _buildCard(Icons.star, () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => StudentAchievementsScreen(
+                                    studentId: studentData['StudentID'].toString(), // Passing the student ID to HealthProfileScreen
+                                  ),
+                                ),
+                              );
+                            }),
+                            _buildCard(Icons.menu_book, () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CoursesScreen(
+                                    gradeGroupId: studentData['GradeGroupID'].toString(), // Passing GradeGroupID to CoursesScreen
+                                    sectionId: studentData['SectionID'].toString(), // Passing SectionID to CoursesScreen
+                                  ),
+                                ),
+                              );
+                            }),
+                            _buildCard(Icons.attach_money, () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FeeInvoiceScreen(
+                                    studentId: studentData['StudentID'].toString(),
+                                    sessionId: studentData['AcademicSessionID'].toString(),
+                                    feeTypeId: 1.toString(),// Passing SectionID to CoursesScreen
+                                  ),
+                                ),
+                              );
+                            }),
+                            _buildCard(Icons.policy, () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => WebPoliciesScreen(),
+                                ),
+                              );
+                            }),
+                            if(studentData['Bus'] != null)
+                              _buildCard(Icons.directions_bus, () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => BusDetailsScreen(
+                                      studentId: studentData['StudentID'].toString(), // Passing the student ID to HealthProfileScreen
+                                    ),
+                                  ),
+                                );
+                              }),
                             if (hasSiblings)
                               _buildCard(Icons.groups_2, () {
                                 Navigator.pushReplacementNamed(
@@ -268,10 +358,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           top: 0,
                           child: Center(
                             child: Opacity(
-                              opacity: 0.2, // Adjust opacity as needed
+                              opacity: 0.5, // Adjust opacity as needed
                               child: Image.asset(
-                                'assets/tng_logo.png',
-                                width: 100.0, // Adjust size as needed
+                                'assets/tng_logo_complete.png',
+                                width: 250.0, // Adjust size as needed
                                 height: 100.0, // Adjust size as needed
                               ),
                             ),
@@ -370,6 +460,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String imageUrlBase = 'https://pers.tngqatar.online/Controler/Public/images/studentPhotos/';
     String imageUrlJpg = '$imageUrlBase$studentId.jpg';
     String imageUrlJPG = '$imageUrlBase$studentId.JPG';
+    String imageUrlPNG = '$imageUrlBase$studentId.png';
+    String imageUrlBMP = '$imageUrlBase$studentId.bmp';
+    String imageUrlJPEG = '$imageUrlBase$studentId.jpeg';
+
 
     // Check if the images exist before showing the dialog
     String? imageUrl;
@@ -532,10 +626,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ['Mother Phone', studentData['MotherCellPhone']],
                     ], onBack),
                   ] else if (cardName == 'Enrollment Information') ...[
-                    _buildInfoTableCard('Enrollment Information', [
-                      ['Enrollment Information', 'Placeholder'],
+                    _buildInfoTableCard('Attendance', [
+                      ['Date', 'Status'],
+
                     ], onBack),
+
                   ],
+
                 ],
               ),
             ),

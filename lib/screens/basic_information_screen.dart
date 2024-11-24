@@ -75,7 +75,7 @@ class BasicInformationScreen extends StatelessWidget {
                       ['Compound Name', studentData['CompoundName'] ?? 'N/A'],
                       ['Nearest Landmark', studentData['NearestLandmark'] ?? 'N/A'],
                       ['City', studentData['City'].toString()],
-                      ['State', studentData['State']],
+                      ['State', studentData['State'] ?? 'N/A'],
                     ]),
                   ],
                 ),

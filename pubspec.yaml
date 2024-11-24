@@ -34,6 +34,12 @@ dependencies:
   crypto: ^3.0.1
   shared_preferences: ^2.0.15
   animated_text_kit: ^4.2.1
+  skeletonizer: ^1.4.2
+  html: ^0.15.0
+  webview_flutter: ^4.4.2
+  path_provider: ^2.1.1
+  permission_handler: ^11.0.1
+  open_file: ^3.3.2
 
 
   # The following adds the Cupertino Icons font to your application.

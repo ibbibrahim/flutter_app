@@ -13,11 +13,18 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fatherQatarIdController = TextEditingController();
-
   bool _isLoading = false;
 
   String _generateMd5(String input) {
     return md5.convert(utf8.encode(input)).toString();
+  }
+
+  // Generate MD5 token function
+  String _generateMd5Token(String secretKey) {
+    final date = DateTime.now();
+    final formattedDate = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+    final tokenInput = "$secretKey$formattedDate";
+    return md5.convert(utf8.encode(tokenInput)).toString().toUpperCase();
   }
 
   void _login() async {
@@ -28,13 +35,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // Hash the inputs
 
-      String hashedFatherQatarId = _fatherQatarIdController.text;
+      // Generate MD5 token for action parameter
+      String actionToken = _generateMd5Token('getSiblingsDetails');
+      String fatherQatarId = _fatherQatarIdController.text;
 
       final response = await http.get(
-        Uri.parse(
-          'https://0455-37-210-209-217.ngrok-free.app/tng_api/index.php?father_qatar_id=${_fatherQatarIdController.text}',
-        ),
+          Uri.parse(
+            'https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?father_qatar_id=$fatherQatarId&Action=$actionToken',
+          )
       );
+
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
