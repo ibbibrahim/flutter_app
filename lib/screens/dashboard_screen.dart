@@ -3,6 +3,7 @@ import 'package:login_portal/screens/policies_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 import 'package:login_portal/screens/basic_information_screen.dart';
 import 'package:login_portal/screens/attendance_screen.dart';
@@ -11,6 +12,12 @@ import 'package:login_portal/screens/bus_detail_screen.dart';
 import 'package:login_portal/screens/course_screen.dart';
 import 'package:login_portal/screens/student_achievements_screen.dart';
 import 'package:login_portal/screens/student_invoice_screen_copy.dart';
+import 'package:login_portal/screens/alert_screen.dart';
+import 'package:login_portal/screens/student_address_update_screen.dart';
+import 'package:login_portal/screens/student_health_update_screen.dart';
+
+import 'package:login_portal/utils/notification_provider.dart';
+import 'package:login_portal/utils/funtions.dart';
 
 
 class DashboardScreen extends StatefulWidget {
@@ -46,6 +53,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final Map<String, dynamic> studentData = args['student'];
     final hasSiblings = args['hasSiblings'] ?? false;
     final siblingsList = args['siblings'] ?? null;
+    final notificationProvider = Provider.of<NotificationProvider>(context);
 
     String studentFullName =
         '${studentData['Student Full Name']}';
@@ -69,7 +77,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
            ),
-
+          Positioned(
+            top: 60,
+            right: 35,
+            child: Stack(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.notifications,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    notificationProvider.clearNotifications(); // Reset count when opened
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AlertScreen()),
+                    );
+                  },
+                  iconSize: 30.0,
+                  padding: EdgeInsets.all(5.0),
+                  splashRadius: 30.0,
+                ),
+                if (notificationProvider.notificationCount > 0)
+                  Positioned(
+                    right: 5,
+                    top: 5,
+                    child: Container(
+                      padding: EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 20,
+                        minHeight: 20,
+                      ),
+                      child: Text(
+                        '${notificationProvider.notificationCount}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
           Positioned(
             top: 60,
             right: 0,
@@ -88,24 +143,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
-          Positioned(
-            top: 60,
-            right: 35,
-            child: Material(
-              shape: CircleBorder(),
-              color: Colors.transparent,
-              child: IconButton(
-                icon: Icon(
-                  Icons.person,
-                  color: Colors.white,
-                ),
-                onPressed: _showFatherDetails,
-                iconSize: 30.0,
-                padding: EdgeInsets.all(5.0),
-                splashRadius: 30.0,
-              ),
-            ),
-          ),
+          // Positioned(
+          //   top: 60,
+          //   right: 35,
+          //   child: Material(
+          //     shape: CircleBorder(),
+          //     color: Colors.transparent,
+          //     child: IconButton(
+          //       icon: Icon(
+          //         Icons.person,
+          //         color: Colors.white,
+          //       ),
+          //       onPressed: _showFatherDetails,
+          //       iconSize: 30.0,
+          //       padding: EdgeInsets.all(5.0),
+          //       splashRadius: 30.0,
+          //     ),
+          //   ),
+          // ),
           _buildStudentAvatar(studentData),
           Padding(
             padding: const EdgeInsets.only(top: 20.0),
@@ -113,42 +168,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 SizedBox(height: 25),
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(horizontal: 100.0),
-                //   // child: AnimatedTextKit(
-                //   //   animatedTexts: [
-                //   //     TypewriterAnimatedText(
-                //   //       'Welcome, $fatherFullName',
-                //   //       speed: Duration(milliseconds: 200),
-                //   //       textStyle: TextStyle(
-                //   //         fontSize: 12,
-                //   //         fontWeight: FontWeight.bold,
-                //   //         color: Colors.white,
-                //   //       ),
-                //   //       curve: Curves.easeInOut,
-                //   //     ),
-                //   //     TypewriterAnimatedText(
-                //   //       '',
-                //   //       speed: Duration(milliseconds: 100),
-                //   //       textStyle: TextStyle(
-                //   //         fontSize: 12,
-                //   //         fontWeight: FontWeight.bold,
-                //   //         color: Colors.white,
-                //   //       ),
-                //   //       curve: Curves.easeInOut,
-                //   //       textAlign: TextAlign.start,
-                //   //       cursor: '',
-                //   //       // This handles the backspace effect by starting with an empty string
-                //   //     ),
-                //   //   ],
-                //   //   totalRepeatCount: 1,
-                //   //   onFinished: () {
-                //   //     setState(() {
-                //   //       showWelcome = false;
-                //   //     });
-                //   //   },
-                //   // ),
-                // ),
+
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 80.0),
                   child: Row(
@@ -322,6 +342,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               );
                             }),
+                            _buildCard(Icons.notifications, () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AlertScreen(),
+                                ),
+                              );
+                            }),
+                            _buildCard(Icons.edit_location_alt_outlined, () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddressUpdateScreen(
+                                    studentId: studentData['StudentID'].toString(),
+                                    fatherQatarId: studentData['FatherQatarID'].toString(),
+                                  ),
+                                ),
+                              );
+                            }),
+                            _buildCard(Icons.health_and_safety_outlined, () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => StudentHealthProfileScreen(
+                                    studentId: generateMd5Hash(studentData['StudentID'].toString()),
+                                    fatherQatarId: generateMd5Hash(studentData['FatherQatarID'].toString()),
+                                  ),
+                                ),
+                              );
+                            }),
+
                             if(studentData['Bus'] != null)
                               _buildCard(Icons.directions_bus, () {
                                 Navigator.push(

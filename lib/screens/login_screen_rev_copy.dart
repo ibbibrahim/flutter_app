@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:login_portal/screens/sibling_information_screen.dart';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -45,6 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (response.statusCode == 200) {
           final Map<String, dynamic> data = json.decode(response.body);
+
+          final fcmToken = await FirebaseMessaging.instance.getToken();
+
+          print("==== Login Success Debug Info ====");
+          print("User ID (Father Qatar ID): $fatherQatarId");
+          print("FCM Token: $fcmToken");
+
 
           if (data['status'] == "success" && data['data'] != null) {
             final List<dynamic> siblingsData = data['data'];

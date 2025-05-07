@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class SiblingInformationScreen extends StatelessWidget {
   final List<dynamic> siblings;
@@ -34,14 +35,13 @@ class SiblingInformationScreen extends StatelessWidget {
                   Icons.logout,
                   color: Colors.white,
                 ),
-                onPressed: (){},
+                onPressed: () {},
                 iconSize: 25.0,
                 padding: EdgeInsets.all(5.0),
                 splashRadius: 30.0,
               ),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.only(top: 70.0),
             child: Column(
@@ -78,7 +78,11 @@ class SiblingInformationScreen extends StatelessWidget {
                             Navigator.pushReplacementNamed(
                               context,
                               '/dashboard',
-                              arguments: {'student': siblings[index],'siblings': siblings ,'hasSiblings': true},
+                              arguments: {
+                                'student': siblings[index],
+                                'siblings': siblings,
+                                'hasSiblings': true
+                              },
                             );
                           },
                           child: Card(
@@ -105,6 +109,36 @@ class SiblingInformationScreen extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+
+          // Positioned widget for the notification message
+          Positioned(
+            bottom: 10,
+            left: 10,
+            right: 10,
+            child: StreamBuilder<RemoteMessage>(
+              stream: FirebaseMessaging.onMessage,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final message = snapshot.data!;
+                  return Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      message.notification?.body ?? 'You have a new message!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  );
+                }
+                return SizedBox(); // Return an empty widget if no message is available
+              },
             ),
           ),
         ],
