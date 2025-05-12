@@ -4,16 +4,17 @@ import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
 
 import 'package:login_portal/utils/funtions.dart';
+import 'package:login_portal/screens/student_health_update_screen.dart';
 
 class HealthProfileScreen extends StatefulWidget {
   final String studentId;
+  final String fatherQatarId;
 
-  HealthProfileScreen({required this.studentId});
+  HealthProfileScreen({required this.studentId, required this.fatherQatarId});
 
   @override
   _HealthProfileScreenState createState() => _HealthProfileScreenState();
 }
-
 class _HealthProfileScreenState extends State<HealthProfileScreen> {
   Map<String, dynamic> healthData = {};
   bool isLoading = true;
@@ -79,24 +80,52 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(2.0, 40.0, 16.0, 16.0),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                      SizedBox(width: 8.0),
+                      Text(
+                        'Health Profile',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 8.0),
-                  Text(
-                    'Health Profile',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => StudentHealthProfileScreen(
+                            studentId: widget.studentId,
+                            fatherQatarId: widget.fatherQatarId,
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.blueAccent,
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      elevation: 2,
                     ),
+                    icon: Icon(Icons.edit, size: 18),
+                    label: Text("Edit", style: TextStyle(fontSize: 14)),
                   ),
                 ],
-              ),
+              )
+              ,
             ),
           ),
           Expanded(

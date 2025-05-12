@@ -33,8 +33,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ),
       );
 
+
+
       if (response.statusCode == 200) {
         final List data = json.decode(response.body);
+        print('Token Refreshed: $data');
         setState(() {
           attendanceData = List<Map<String, dynamic>>.from(data);
           isLoading = false;

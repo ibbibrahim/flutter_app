@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 import 'package:login_portal/screens/basic_information_screen.dart';
-import 'package:login_portal/screens/attendance_screen.dart';
+import 'package:login_portal/screens/attendance_screen_copy.dart';
 import 'package:login_portal/screens/health_profile_screen.dart';
 import 'package:login_portal/screens/bus_detail_screen.dart';
 import 'package:login_portal/screens/course_screen.dart';
@@ -296,11 +296,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => HealthProfileScreen(
-                                    studentId: studentData['StudentID'].toString(), // Passing the student ID to HealthProfileScreen
+                                    studentId: studentData['StudentID'].toString(),
+                                    fatherQatarId: studentData['FatherQatarID'].toString(), // 👈 pass Father QID too
                                   ),
                                 ),
                               );
                             }),
+
                             _buildCard(Icons.star, () {
                               Navigator.push(
                                 context,
@@ -350,28 +352,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               );
                             }),
-                            _buildCard(Icons.edit_location_alt_outlined, () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AddressUpdateScreen(
-                                    studentId: studentData['StudentID'].toString(),
-                                    fatherQatarId: studentData['FatherQatarID'].toString(),
-                                  ),
-                                ),
-                              );
-                            }),
-                            _buildCard(Icons.health_and_safety_outlined, () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => StudentHealthProfileScreen(
-                                    studentId: generateMd5Hash(studentData['StudentID'].toString()),
-                                    fatherQatarId: generateMd5Hash(studentData['FatherQatarID'].toString()),
-                                  ),
-                                ),
-                              );
-                            }),
+                            // _buildCard(Icons.edit_location_alt_outlined, () {
+                            //   Navigator.push(
+                            //     context,
+                            //     MaterialPageRoute(
+                            //       builder: (context) => AddressUpdateScreen(
+                            //         studentId: studentData['StudentID'].toString(),
+                            //         fatherQatarId: studentData['FatherQatarID'].toString(),
+                            //       ),
+                            //     ),
+                            //   );
+                            // }),
+                            // _buildCard(Icons.health_and_safety_outlined, () {
+                            //   Navigator.push(
+                            //     context,
+                            //     MaterialPageRoute(
+                            //       builder: (context) => StudentHealthProfileScreen(
+                            //         studentId: generateMd5Hash(studentData['StudentID'].toString()),
+                            //         fatherQatarId: generateMd5Hash(studentData['FatherQatarID'].toString()),
+                            //       ),
+                            //     ),
+                            //   );
+                            // }),
 
                             if(studentData['Bus'] != null)
                               _buildCard(Icons.directions_bus, () {

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+
+import 'package:login_portal/screens/student_address_update_screen.dart';
+
 class BasicInformationScreen extends StatelessWidget {
   final Map<String, dynamic> studentData;
   final String studentFullName;
@@ -28,21 +31,48 @@ class BasicInformationScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(2.0, 40.0, 16.0, 16.0), // Top padding increased
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                      SizedBox(width: 8.0),
+                      Text(
+                        'Student Details',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 8.0),
-                  Text(
-                    'Student Detials',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddressUpdateScreen(
+                            studentId: studentData['StudentID'].toString(),
+                            fatherQatarId: studentData['FatherQatarID'].toString(),
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.blueAccent,
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      elevation: 2,
                     ),
+                    icon: Icon(Icons.edit, size: 18),
+                    label: Text("Edit", style: TextStyle(fontSize: 14)),
                   ),
                 ],
               ),

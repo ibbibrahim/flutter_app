@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
-import 'package:skeletonizer/skeletonizer.dart';
+
+
+import 'package:login_portal/screens/swipeable_calendar_view.dart';
+import 'package:login_portal/utils/funtions.dart';
 
 class AttendanceScreen extends StatefulWidget {
   final String studentId;
@@ -28,12 +31,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${_generateMd5Token('getStudentAttendance')}&student_id=${widget.studentId}',
+          'https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash('getStudentAttendance')}&student_id=${widget.studentId}',
         ),
       );
-
       if (response.statusCode == 200) {
         final List data = json.decode(response.body);
+        print('Token Refreshed: $data');
         setState(() {
           attendanceData = List<Map<String, dynamic>>.from(data);
           isLoading = false;
@@ -52,24 +55,50 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }
   }
 
-  String _generateMd5Token(String secretKey) {
-    final date = DateTime.now();
-    final formattedDate = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-    final tokenInput = "$secretKey$formattedDate";
-    return md5.convert(utf8.encode(tokenInput)).toString().toUpperCase();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
-          _buildHeader(),
+          Container(
+            height: MediaQuery.of(context).orientation == Orientation.portrait
+                ? MediaQuery.of(context).size.height * 0.1
+                : MediaQuery.of(context).size.height * 0.2,
+            decoration: BoxDecoration(
+              color: Colors.blueAccent,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(10.0),
+                bottomRight: Radius.circular(10.0),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(2.0, 40.0, 16.0, 16.0),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  SizedBox(width: 8.0),
+                  Text(
+                    'Attendance',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: isLoading
-                  ? _buildSkeletonLoader()
+                  ? Center(child: CircularProgressIndicator())
                   : hasError
                   ? Center(child: Text("Error loading attendance data"))
                   : SingleChildScrollView(
@@ -82,141 +111,115 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      height: MediaQuery.of(context).orientation == Orientation.portrait
-          ? MediaQuery.of(context).size.height * 0.1
-          : MediaQuery.of(context).size.height * 0.2,
-      decoration: BoxDecoration(
-        color: Colors.blueAccent,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(10.0),
-          bottomRight: Radius.circular(10.0),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(2.0, 40.0, 16.0, 16.0),
-        child: Row(
-          children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            SizedBox(width: 8.0),
-            Text(
-              'Attendance',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildAttendanceTable() {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 8.0),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              'Attendance Record',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueAccent,
-              ),
-            ),
-            SizedBox(height: 16.0),
-            Column(
-              children: attendanceData.map((monthData) {
-                String month = monthData['month'];
-                int presentCount = monthData['present_count'];
-                int absentCount = monthData['absent_count'];
-                List dailyRecords = monthData['daily_records'];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+        //   child: Text(
+        //     'Attendance Record',
+        //     style: TextStyle(
+        //       fontSize: 18,
+        //       fontWeight: FontWeight.bold,
+        //       color: Colors.blueAccent,
+        //     ),
+        //   ),
+        // ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: attendanceData.length,
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          itemBuilder: (context, index) {
+            final monthData = attendanceData[index];
+            final String month = monthData['month'];
+            final int present = monthData['present_count'];
+            final int absent = monthData['absent_count'];
 
-                return ExpansionTile(
-                  title: Text('$month'),
-                  subtitle: Text('Present: $presentCount, Absent: $absentCount'),
-                  children: dailyRecords.map<Widget>((dailyRecord) {
-                    return ListTile(
-                      title: Text(dailyRecord['date']),
-                      subtitle: Text(dailyRecord['status']),
-                      tileColor: dailyRecord['status'].contains('Absent')
-                          ? Colors.red[100]
-                          : Colors.white,
-                    );
-                  }).toList(),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SwipeableCalendarView(
+                        attendanceData: attendanceData,
+                        initialIndex: index,
+                      ),
+                    ),
+                  );
 
-  Widget _buildSkeletonLoader() {
-    return Skeletonizer(
-      enabled: true,
-      child: Column(
-        children: [
-          Container(
-            height: 24,
-            width: double.infinity,
-            color: Colors.blueAccent,
-            margin: EdgeInsets.symmetric(vertical: 8.0),
-          ),
-          ListView.builder(
-            shrinkWrap: true,
-            itemCount: 3,
-            itemBuilder: (context, index) {
-              return Card(
-                margin: EdgeInsets.symmetric(vertical: 8.0),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 20,
-                        width: double.infinity,
-                        color: Colors.grey[300],
-                        margin: EdgeInsets.symmetric(vertical: 8.0),
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      height: 50,
+                      width: 50,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(100),
                       ),
-                      SizedBox(height: 8),
-                      Container(
-                        height: 16,
-                        width: 100,
-                        color: Colors.grey[300],
-                        margin: EdgeInsets.symmetric(vertical: 4.0),
-                      ),
-                      SizedBox(height: 16),
-                      for (int i = 0; i < 4; i++)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Container(
-                            height: 16,
-                            width: double.infinity,
-                            color: Colors.grey[300],
-                          ),
+                      child: Text(
+                        month.substring(0, 3),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueAccent,
                         ),
-                    ],
-                  ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '$present',
+                              style: TextStyle(
+                                  color: Colors.green, fontWeight: FontWeight.bold),
+                            ),
+                            Text('Present', style: TextStyle(color: Colors.green)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '$absent',
+                              style: TextStyle(
+                                  color: Colors.red, fontWeight: FontWeight.bold),
+                            ),
+                            Text('Absent', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            },
-          ),
-        ],
-      ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
+
 }
