@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:login_portal/controllers/student_controller.dart';
+import 'package:login_portal/routes/app_routes.dart';
 
 class SiblingInformationScreen extends StatelessWidget {
   final List<dynamic> siblings;
@@ -75,6 +79,14 @@ class SiblingInformationScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         return InkWell(
                           onTap: () {
+                            final sc = Get.find<StudentController>();
+
+                            sc.setStudent(
+                              json: siblings[index],
+                              hasSiblingsFlag: true,
+                              sibs: siblings,
+                            );
+
                             Navigator.pushReplacementNamed(
                               context,
                               '/dashboard',

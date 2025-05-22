@@ -1,53 +1,60 @@
 import 'package:flutter/material.dart';
-
-
 import 'package:login_portal/screens/student_address_update_screen.dart';
 
 class BasicInformationScreen extends StatelessWidget {
   final Map<String, dynamic> studentData;
   final String studentFullName;
 
-  BasicInformationScreen({
+  const BasicInformationScreen({
+    Key? key,
     required this.studentData,
     required this.studentFullName,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       body: Column(
         children: [
+          // App Bar Section
           Container(
             height: MediaQuery.of(context).orientation == Orientation.portrait
-                ? MediaQuery.of(context).size.height * 0.1
+                ? MediaQuery.of(context).size.height * 0.12
                 : MediaQuery.of(context).size.height * 0.2,
             decoration: BoxDecoration(
               color: Colors.blueAccent,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(10.0),
-                bottomRight: Radius.circular(10.0),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(16.0),
+                bottomRight: Radius.circular(16.0),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(2.0, 40.0, 16.0, 16.0), // Top padding increased
+              padding: const EdgeInsets.fromLTRB(16.0, 56.0, 16.0, 16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
+                        icon: Icon(Icons.arrow_back, color: colorScheme.onPrimary),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                      SizedBox(width: 8.0),
+                      const SizedBox(width: 8.0),
                       Text(
                         'Student Details',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                        style: textTheme.headlineSmall?.copyWith(
+                          color: colorScheme.onPrimary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -65,48 +72,61 @@ class BasicInformationScreen extends StatelessWidget {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.blueAccent,
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      elevation: 2,
+                      backgroundColor: colorScheme.onPrimary,
+                      foregroundColor: colorScheme.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
                     ),
-                    icon: Icon(Icons.edit, size: 18),
-                    label: Text("Edit", style: TextStyle(fontSize: 14)),
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: Text("Edit", style: textTheme.labelLarge),
                   ),
                 ],
               ),
             ),
           ),
+
+          // Content Section
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    _buildInfoTableCard('Basic Information', [
-                      ['Name', studentFullName],
-                      ['QID', studentData['QID']],
-                      ['DOB', studentData['DOB']],
-                      ['Age', studentData['Age'].toString()],
-                      ['Religion', studentData['ReligionID'] == '1' ? 'Islam' : 'Other'],
-                    ]),
-                    SizedBox(height: 20),
-                    _buildInfoTableCard('Address', [
-                      ['Unit No', studentData['UnitNo'].toString()],
-                      ['House No', studentData['HosueNo']],
-                      ['Street No', studentData['StreetNo'].toString()],
-                      ['Street Name', studentData['StreetName']],
-                      ['Zone No', studentData['ZoneNo'].toString()],
-                      ['Zone Name', studentData['ZoneName']],
-                      ['Zip Code', studentData['ZipCode'] ?? 'N/A'], // Assuming Zip Code field
-                      ['Flat/Villa', studentData['FlatVilla'] == 0 ? 'Flat' : 'Villa'],
-                      ['Compound Name', studentData['CompoundName'] ?? 'N/A'],
-                      ['Nearest Landmark', studentData['NearestLandmark'] ?? 'N/A'],
-                      ['City', studentData['City'].toString()],
-                      ['State', studentData['State'] ?? 'N/A'],
-                    ]),
+                    _buildInfoTableCard(
+                      context,
+                      'Basic Information',
+                      [
+                        {'icon': Icons.person_outline, 'value': studentFullName},
+                        {'icon': Icons.credit_card, 'value': studentData['QID']},
+                        {'icon': Icons.calendar_today, 'value': studentData['DOB']},
+                        {'icon': Icons.cake, 'value': studentData['Age'].toString()},
+                        {'icon': Icons.auto_stories, 'value': studentData['ReligionID'] == '1' ? 'Islam' : 'Other'},
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInfoTableCard(
+                      context,
+                      'Address',
+                      [
+                        {'icon': Icons.numbers, 'value': studentData['UnitNo'].toString()},
+                        {'icon': Icons.home, 'value': studentData['HosueNo']},
+                        {'icon': Icons.signpost, 'value': studentData['StreetNo'].toString()},
+                        {'icon': Icons.route, 'value': studentData['StreetName']},
+                        {'icon': Icons.location_city, 'value': studentData['ZoneNo'].toString()},
+                        {'icon': Icons.map, 'value': studentData['ZoneName']},
+                        {'icon': Icons.markunread_mailbox, 'value': studentData['ZipCode'] ?? 'N/A'},
+                        {'icon': Icons.apartment, 'value': studentData['FlatVilla'] == 0 ? 'Flat' : 'Villa'},
+                        {'icon': Icons.business, 'value': studentData['CompoundName'] ?? 'N/A'},
+                        {'icon': Icons.place, 'value': studentData['NearestLandmark'] ?? 'N/A'},
+                        {'icon': Icons.location_city, 'value': studentData['City'].toString()},
+                        {'icon': Icons.location_on, 'value': studentData['State'] ?? 'N/A'},
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -117,46 +137,222 @@ class BasicInformationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoTableCard(String title, List<List<String>> data) {
+  Widget _buildInfoTableCard(BuildContext context, String title, List<Map<String, dynamic>> data) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: colorScheme.surfaceVariant,
+      margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueAccent,
-              ),
+            Row(
+              children: [
+                Icon(
+                  title == 'Basic Information' ? Icons.person_outline : Icons.home_outlined,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: textTheme.titleLarge?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 16.0),
-            Table(
-              columnWidths: const {
-                0: FlexColumnWidth(2),
-                1: FlexColumnWidth(3),
-              },
-              border: TableBorder.all(color: Colors.grey[300]!),
-              children: data.map((row) {
-                return TableRow(
-                  children: row.map((cell) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        cell,
-                        style: TextStyle(fontSize: 14),
+            const SizedBox(height: 16.0),
+
+            if (title == 'Address')
+              _buildBluePlateBox(
+                context,
+                studentData['HosueNo'].toString(),
+                studentData['ZoneNo'].toString(),
+                studentData['StreetNo'].toString(),
+              ),
+
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: colorScheme.surface,
+                border: Border.all(
+                  color: colorScheme.outlineVariant,
+                  width: 1,
+                ),
+              ),
+              child: Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(1.5),
+                  1: FlexColumnWidth(2.5),
+                },
+                children: data.map((item) {
+                  return TableRow(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: colorScheme.outlineVariant,
+                          width: 1,
+                        ),
                       ),
-                    );
-                  }).toList(),
-                );
-              }).toList(),
+                    ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, // Reduced from 12
+                          vertical: 12.0,
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Icon(
+                            item['icon'],
+                            color: colorScheme.primary,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5.0,
+                          vertical: 12.0,
+                        ),
+                        child: Text(
+                          item['value'].toString(),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildBluePlateBox(BuildContext context, String building, String zone, String street) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white, // outer container
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade300, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Street row (full-width)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: Color(0xFF0026A6),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  'Street',
+                  style: textTheme.labelMedium?.copyWith(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '$street / Street $street',
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 5),
+
+          // Zone + Building row
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF0026A6),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Zone',
+                        style: textTheme.labelMedium?.copyWith(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        zone,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF0026A6),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Building',
+                        style: textTheme.labelMedium?.copyWith(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        building,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
 }

@@ -3,8 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
-import 'package:login_portal/screens/sibling_information_screen.dart';
+import 'package:get/get.dart';
 
+import 'package:login_portal/routes/app_routes.dart';
+import 'package:login_portal/controllers/student_controller.dart';
+import 'package:login_portal/screens/sibling_information_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -47,6 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (response.statusCode == 200) {
           final Map<String, dynamic> data = json.decode(response.body);
+          final sc = Get.put(StudentController(), permanent: true);
 
           final fcmToken = await FirebaseMessaging.instance.getToken();
 
@@ -58,18 +62,32 @@ class _LoginScreenState extends State<LoginScreen> {
           if (data['status'] == "success" && data['data'] != null) {
             final List<dynamic> siblingsData = data['data'];
             if (siblingsData.length > 1) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SiblingInformationScreen(siblings: siblingsData),
-                ),
+              // Navigator.pushReplacement(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) => SiblingInformationScreen(siblings: siblingsData),
+              //   ),
+              // );
+
+              Get.offNamed(
+                AppRoutes.siblingsScreen,
+                arguments: siblingsData,   // still pass the list
               );
+
             } else {
-              Navigator.pushReplacementNamed(
-                context,
-                '/dashboard',
-                arguments: {'student': siblingsData.isNotEmpty ? siblingsData[0] : null, 'hasSiblings': false},
+              sc.setStudent(
+                json: siblingsData[0],
+                hasSiblingsFlag: false,
+                sibs: null,
               );
+              // land on new bottom-nav container
+              Get.offNamed(AppRoutes.dashboardScreen);
+
+              // Navigator.pushReplacementNamed(
+              //   context,
+              //   '/dashboard',
+              //   arguments: {'student': siblingsData.isNotEmpty ? siblingsData[0] : null, 'hasSiblings': false},
+              // );
             }
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
