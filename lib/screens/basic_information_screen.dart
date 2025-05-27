@@ -1,21 +1,25 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+
 import 'package:login_portal/screens/student_address_update_screen.dart';
 
-class BasicInformationScreen extends StatelessWidget {
-  final Map<String, dynamic> studentData;
-  final String studentFullName;
+import '../controllers/student_controller.dart';
 
-  const BasicInformationScreen({
-    Key? key,
-    required this.studentData,
-    required this.studentFullName,
-  }) : super(key: key);
+class BasicInformationScreen extends StatelessWidget {
+  const BasicInformationScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final studentData = Get.find<StudentController>().student;
+    final studentFullName = studentData['Student Full Name'];
+
+
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
+    print('studentData:\n${const JsonEncoder.withIndent('  ').convert(studentData)}');
     return Scaffold(
       body: Column(
         children: [
@@ -106,7 +110,7 @@ class BasicInformationScreen extends StatelessWidget {
                         {'icon': Icons.calendar_today, 'value': studentData['DOB']},
                         {'icon': Icons.cake, 'value': studentData['Age'].toString()},
                         {'icon': Icons.auto_stories, 'value': studentData['ReligionID'] == '1' ? 'Islam' : 'Other'},
-                      ],
+                      ],studentData
                     ),
                     const SizedBox(height: 16),
                     _buildInfoTableCard(
@@ -125,7 +129,7 @@ class BasicInformationScreen extends StatelessWidget {
                         {'icon': Icons.place, 'value': studentData['NearestLandmark'] ?? 'N/A'},
                         {'icon': Icons.location_city, 'value': studentData['City'].toString()},
                         {'icon': Icons.location_on, 'value': studentData['State'] ?? 'N/A'},
-                      ],
+                      ], studentData
                     ),
                   ],
                 ),
@@ -137,7 +141,7 @@ class BasicInformationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoTableCard(BuildContext context, String title, List<Map<String, dynamic>> data) {
+  Widget _buildInfoTableCard(BuildContext context, String title, List<Map<String, dynamic>> data, Map<String, dynamic> studentData) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -178,7 +182,11 @@ class BasicInformationScreen extends StatelessWidget {
                 studentData['HosueNo'].toString(),
                 studentData['ZoneNo'].toString(),
                 studentData['StreetNo'].toString(),
+                studentData['UnitNo']?.toString(), // Pass unit number if present
               ),
+
+
+
 
             Container(
               decoration: BoxDecoration(
@@ -243,21 +251,29 @@ class BasicInformationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBluePlateBox(BuildContext context, String building, String zone, String street) {
+  Widget _buildBluePlateBox(
+      BuildContext context,
+      String building,
+      String zone,
+      String street,
+      [String? unitNo] // optional
+      ) {
     final textTheme = Theme.of(context).textTheme;
+    final isCompound = unitNo != null && unitNo.isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white, // outer container
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey.shade300, width: 1),
       ),
-      child: Column(
+      child: isCompound
+          ? Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Street row (full-width)
+          // 🔹 Top: Unit Number Full Width
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
@@ -267,7 +283,7 @@ class BasicInformationScreen extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  'Street',
+                  'Unit Number',
                   style: textTheme.labelMedium?.copyWith(
                     color: Colors.white70,
                     fontWeight: FontWeight.w500,
@@ -275,8 +291,8 @@ class BasicInformationScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '$street / Street $street',
-                  style: textTheme.titleMedium?.copyWith(
+                  unitNo!,
+                  style: textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -287,66 +303,55 @@ class BasicInformationScreen extends StatelessWidget {
 
           const SizedBox(height: 5),
 
-          // Zone + Building row
+          // 🔹 Bottom Row: Zone, Street, Building
           Row(
             children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Color(0xFF0026A6),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Zone',
-                        style: textTheme.labelMedium?.copyWith(
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        zone,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Color(0xFF0026A6),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Building',
-                        style: textTheme.labelMedium?.copyWith(
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        building,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
+              _buildBox('Zone', zone, textTheme),
+              const SizedBox(width: 4),
+              _buildBox('Street', street, textTheme),
+              const SizedBox(width: 4),
+              _buildBox('Building No', building, textTheme),
+            ],
+          ),
+        ],
+      )
+          : Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 🟦 Standard: Building Full Width
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: Color(0xFF0026A6),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  'Building No.',
+                  style: textTheme.labelMedium?.copyWith(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-              ),
+                const SizedBox(height: 6),
+                Text(
+                  building,
+                  style: textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 5),
+
+          Row(
+            children: [
+              _buildBox('Zone', zone, textTheme),
+              const SizedBox(width: 4),
+              _buildBox('Street', street, textTheme),
             ],
           ),
         ],
@@ -354,5 +359,35 @@ class BasicInformationScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildBox(String label, String value, TextTheme textTheme) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: Color(0xFF0026A6),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: textTheme.labelSmall?.copyWith(
+                color: Colors.white70,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
 }

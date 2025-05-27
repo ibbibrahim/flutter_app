@@ -54,10 +54,7 @@ class CustomBottomBar extends StatelessWidget {
       activeIcon: ImageConstant.profileFill,
       title: 'Profile',
       type: BottomBarEnum.Profile,
-      widget: BasicInformationScreen(
-        studentData: const {}, // supply real data later
-        studentFullName: '',
-      ),
+      widget: BasicInformationScreen(),
     ),
   ];
 

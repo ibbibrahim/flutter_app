@@ -259,7 +259,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                     image: DecorationImage(
                                       fit: BoxFit.cover,
-                                      image: AssetImage('assets/images/tng_banner.jpeg'), // Replace with your image path
+                                      image: AssetImage('assets/images/Banner.png'), // Replace with your image path
                                     ),
                                   ),
                                   child: Padding(

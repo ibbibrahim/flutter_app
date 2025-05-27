@@ -9,6 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_api.dart';                                  // ← your notification setup
 
 import 'package:provider/provider.dart';
+import 'localization/app_localization.dart';
 import 'utils/notification_provider.dart';                   // ← your ChangeNotifier
 import 'utils/logger.dart';
 
@@ -56,7 +57,7 @@ class MyApp extends StatelessWidget {
 
       // —————— Template theming & i18n ——————
       // theme: theme,                                   // from core/app_export.dart
-      // translations: AppLocalization(),                // your .tr() keys
+      translations: AppLocalization(),                // your .tr() keys
       locale: Get.deviceLocale,                       // auto device locale
       fallbackLocale: const Locale('en', 'US'),
 

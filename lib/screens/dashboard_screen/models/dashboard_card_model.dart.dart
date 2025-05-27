@@ -3,15 +3,18 @@ import 'package:get/get.dart';
 import 'package:login_portal/controllers/student_controller.dart';
 import 'package:login_portal/screens/attendance_screen_copy.dart';
 import 'package:login_portal/screens/basic_information_screen.dart';
+import 'package:login_portal/screens/exam_result_tab_container_screen/exam_result_tab_container_screen.dart';
 import 'package:login_portal/screens/health_profile_screen.dart';
 import 'package:login_portal/utils/image_constant.dart';
 
 import '../../alert_screen.dart';
 import '../../bus_detail_screen.dart';
 import '../../course_screen.dart';
+import '../../exam_result_tab_container_screen/controller/exam_result_tab_container_controller.dart';
 import '../../policies_screen.dart';
 import '../../student_achievements_screen.dart';
 import '../../student_invoice_screen.dart';
+import '../../parent_details_screen.dart';
 
 class DashboardCardModel {
   final String text;
@@ -38,10 +41,7 @@ final List<DashboardCardModel> dashboardCards = [
     image: ImageConstant.user,
     color: Colors.lightBlue.shade100,
     onTap: () {
-      Get.to(() => BasicInformationScreen(
-            studentData: studentData,
-            studentFullName: studentData["Student Full Name"],
-          ));
+      Get.to(() => BasicInformationScreen());
     },
   ),
   DashboardCardModel(
@@ -49,7 +49,7 @@ final List<DashboardCardModel> dashboardCards = [
     image: ImageConstant.userRemove,
     color: Colors.pink.shade100,
     onTap: () {
-      // Implement Parent Info navigation logic
+      Get.to(() => ParentDetailsScreen());
     },
   ),
   DashboardCardModel(
@@ -120,6 +120,15 @@ final List<DashboardCardModel> dashboardCards = [
     color: Colors.red.shade100,
     onTap: () {
       Get.to(() => AlertScreen());
+    },
+  ),
+  DashboardCardModel(
+    text: "Exam",
+    image: ImageConstant.exam,
+    color: Colors.red.shade100,
+    onTap: () {
+      Get.put(ExamResultTabContainerController()); // 👈 initializes the controller
+      Get.to(() => ExamResultTabContainerScreen());
     },
   ),
   if (studentData['Bus'] != null)

@@ -54,65 +54,69 @@ class _CoursesScreenState extends State<CoursesScreen> {
     }
   }
 
-  String _generateMd5Token(String secretKey) {
-    final date = DateTime.now();
-    final formattedDate = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-    final tokenInput = "$secretKey$formattedDate";
-    return md5.convert(utf8.encode(tokenInput)).toString().toUpperCase();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       body: Column(
         children: [
+          // AppBar style section
           Container(
             height: MediaQuery.of(context).orientation == Orientation.portrait
-                ? MediaQuery.of(context).size.height * 0.1
+                ? MediaQuery.of(context).size.height * 0.12
                 : MediaQuery.of(context).size.height * 0.2,
             decoration: BoxDecoration(
               color: Colors.blueAccent,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(10.0),
-                bottomRight: Radius.circular(10.0),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(16.0),
+                bottomRight: Radius.circular(16.0),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(2.0, 40.0, 16.0, 16.0),
+              padding: const EdgeInsets.fromLTRB(16.0, 56.0, 16.0, 16.0),
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    icon: Icon(Icons.arrow_back, color: colorScheme.onPrimary),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  SizedBox(width: 8.0),
+                  const SizedBox(width: 8.0),
                   Text(
                     'Courses',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                    style: textTheme.headlineSmall?.copyWith(
+                      color: colorScheme.onPrimary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
           ),
+
+          // Content
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(16.0),
               child: isLoading
                   ? Center(child: CircularProgressIndicator())
                   : hasError
                   ? Center(child: Text("Error loading course data"))
                   : SingleChildScrollView(
-                child: _buildInfoTableCard(
+                child: _buildInfoCard(
+                  context,
                   '${courseData['SessionSShortName']} - ${courseData['GradeGroupName']}',
                   (courseData['Courses'] as List<dynamic>?)?.map<List<String>>((course) => [
                     course['CourseName']?.toString() ?? 'N/A',
-                    course['Teacher']?.toString() ?? 'N/A'
+                    course['Teacher']?.toString() ?? 'N/A',
                   ])?.toList() ?? [],
                 ),
               ),
@@ -123,75 +127,89 @@ class _CoursesScreenState extends State<CoursesScreen> {
     );
   }
 
-  Widget _buildInfoTableCard(String title, List<List<String>> data) {
+  Widget _buildInfoCard(BuildContext context, String title, List<List<String>> data) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceVariant,
+      margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueAccent,
-              ),
-            ),
-            SizedBox(height: 16.0),
-            Table(
-              columnWidths: const {
-                0: FlexColumnWidth(3), // Course Name column
-                1: FlexColumnWidth(3), // Teacher column
-              },
-              border: TableBorder.all(color: Colors.grey[300]!),
+          children: [
+            Row(
               children: [
-                // Header row with column names
-                TableRow(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Course Name', // Column header for course name
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Teacher Name', // Column header for teacher name
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
+                Icon(Icons.book_outlined, size: 20, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: textTheme.titleLarge?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                // Data rows
-                ...data.map((row) {
-                  return TableRow(
-                    children: row.map((cell) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          cell,
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      );
-                    }).toList(),
-                  );
-                }).toList(),
               ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: colorScheme.surface,
+                border: Border.all(color: colorScheme.outlineVariant, width: 1),
+              ),
+              child: Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(2.5), // Course
+                  1: FlexColumnWidth(2.5), // Teacher
+                },
+                children: [
+                  // Header row
+                  TableRow(
+                    decoration: BoxDecoration(color: Colors.grey.shade200),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Text(
+                          'Course Name',
+                          style: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Text(
+                          'Teacher Name',
+                          style: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Data rows
+                  ...data.map((row) {
+                    return TableRow(
+                      children: row.map((cell) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+                          child: Text(
+                            cell,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  }).toList(),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
-
 }
