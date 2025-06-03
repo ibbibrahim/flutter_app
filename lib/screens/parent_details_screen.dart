@@ -161,13 +161,82 @@ class ParentDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(BuildContext context, {
-    required String title,
-    required IconData icon,
-    required List<Map<String, dynamic>> data,
-  }) {
+  Widget _buildInfoCard(
+      BuildContext context, {
+        required String title,
+        required IconData icon,
+        required List<Map<String, dynamic>> data,
+      }) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    List<Widget> rows = [];
+    for (int i = 0; i < data.length; i += 2) {
+      final first = data[i];
+      final second = i + 1 < data.length ? data[i + 1] : null;
+
+      rows.add(
+        Container(
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: colorScheme.outlineVariant),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+          child: Row(
+            children: [
+              // First Item
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(first['icon'], color: colorScheme.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        first['value'].toString(),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Divider & Second Item
+              if (second != null) ...[
+                IntrinsicHeight(
+                  child: VerticalDivider(
+                    width: 10,
+                    thickness: 1,
+                    color: colorScheme.outlineVariant,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(second['icon'], color: colorScheme.primary, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          second['value'].toString(),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
 
     return Card(
       elevation: 0,
@@ -204,47 +273,12 @@ class ParentDetailsScreen extends StatelessWidget {
                   width: 1,
                 ),
               ),
-              child: Table(
-                columnWidths: const {
-                  0: FlexColumnWidth(1.5),
-                  1: FlexColumnWidth(2.5),
-                },
-                children: data.map((item) {
-                  return TableRow(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: colorScheme.outlineVariant,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Icon(item['icon'], color: colorScheme.primary, size: 20),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 12.0),
-                        child: Text(
-                          item['value'].toString(),
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }).toList(),
-              ),
+              child: Column(children: rows),
             ),
           ],
         ),
       ),
     );
   }
+
 }

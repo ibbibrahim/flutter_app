@@ -5,33 +5,31 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 
 class InsulinChart extends StatefulWidget {
+  final List<ChartData> data; // ✅ NEW
   final String? date;
 
-  InsulinChart({Key? key, this.date})
-      : super(
-    key: key,
-  );
+  InsulinChart({required this.data, this.date, Key? key}) : super(key: key);
+
 
   @override
   State<InsulinChart> createState() => _InsulinChartState();
 }
 
 class _InsulinChartState extends State<InsulinChart> {
-  late List<ChartData> data;
+  // late List<ChartData> data;
   late TooltipBehavior tooltip;
 
   @override
   void initState() {
     // TODO: implement initState
-    data = [
-      ChartData('Sci', 73, Color(0xFFF94144)),
-      ChartData('Maths', 98, Color(0xFFF3722C)),
-      ChartData('S.S', 173, Color(0xFFF8961E)),
-      ChartData('English', 74, Color(0xFFF9C74F)),
-      ChartData('Gujrati', 124, Color(0xFF90BE6D)),
-      ChartData('Hindi', 149, Color(0xFF2D9CDB)),
-      // ChartData('Su', 58),
-    ];
+    // data = [
+    //   ChartData('Sci', 73, Color(0xFFF94144)),
+    //   ChartData('Maths', 98, Color(0xFFF3722C)),
+    //   ChartData('S.S', 173, Color(0xFFF8961E)),
+    //   ChartData('English', 74, Color(0xFFF9C74F)),
+    //   ChartData('Gujrati', 124, Color(0xFF90BE6D)),
+    //   ChartData('Hindi', 149, Color(0xFF2D9CDB)),
+    // ];
     tooltip = TooltipBehavior(enable: true);
     super.initState();
   }
@@ -41,96 +39,17 @@ class _InsulinChartState extends State<InsulinChart> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Padding(
-        //   padding: EdgeInsets.only(left: 20),
-        //   child: Text(
-        //     widget.date ?? '11-8',
-        //     style: TextStyle(
-        //       color: Color(0xFF7C7C7C),
-        //       fontSize: 18.fSize,
-        //       fontWeight: FontWeight.w400,
-        //     ),
-        //   ),
-        // ),
-        // Padding(
-        //   padding: EdgeInsets.only(left: 20),
-        //   child: Text(
-        //     'Insulin',
-        //     style: TextStyle(
-        //       color: appTheme.blueGray900,
-        //       fontSize: 22.fSize,
-        //       fontWeight: FontWeight.w700,
-        //     ),
-        //   ),
-        // ),
-        // Padding(
-        //   padding: EdgeInsets.only(left: 26.34, right: 25.26, top: 10, bottom: 20),
-        //   child: Divider(
-        //     thickness: 1.5,
-        //     color: Color(0xFFE7E7E7),
-        //   ),
-        // ),
-
-        //       Container(
-        //           child: SfCartesianChart(
-        //               primaryXAxis: CategoryAxis(),
-        //               series: <ChartSeries>[
-        // //                 StackedColumnSeries<ChartData, String>(
-        // //                     groupName: 'Group A',
-        // //                     dataLabelSettings: DataLabelSettings(
-        // //                         isVisible:true,
-        // //                         showCumulativeValues: true
-        // //                     ),
-        // //                     dataSource: data,
-        // //                     xValueMapper: (ChartData data, _) => data.category,
-        // //                     yValueMapper: (ChartData data, _) => data.value
-        // // ,
-        // //                 ),
-        // //                 valueStackedColumnSeries<ChartData, String>(
-        // //                     groupName: 'Group B',
-        // //                     dataLabelSettings: DataLabelSettings(
-        // //                         isVisible:true,
-        // //                         showCumulativeValues: true
-        // //                     ),
-        // //                     dataSource: data,
-        // //                     xValueMapper: (ChartData data, _) =>data.category,
-        // //                     yValueMapper: (ChartData data, _) =>data.value
-        // // ,
-        // //                 ),
-        // //                 StackedColumnSeries<ChartData, String>(
-        // //                     groupName: 'Group A',
-        // //                     dataLabelSettings: DataLabelSettings(
-        // //                         isVisible:true,
-        // //                         showCumulativeValues: true
-        // //                     ),
-        // //                     dataSource: data,
-        // //                     xValueMapper: (ChartData data, _) => data.category,
-        // //                     yValueMapper: (ChartData data, _) => data.value
-        // //
-        // //                 ),
-        //                 StackedColumnSeries<ChartData, String>(
-        //                     groupName: 'Group B',
-        //                     dataLabelSettings: DataLabelSettings(
-        //                         isVisible:true,
-        //                         showCumulativeValues: true
-        //                     ),
-        //                     dataSource: data,
-        //                     xValueMapper: (ChartData data, _) => data.category,
-        //                     yValueMapper: (ChartData data, _) => data.value
-        //                 )
-        //               ]
-        //           )
-        //       )
-
         SfCartesianChart(
           backgroundColor: Colors.transparent,
           borderColor: Colors.transparent,
           borderWidth: 0,
           plotAreaBorderWidth: 0,
           primaryXAxis: CategoryAxis(
+            labelRotation: 45,              // ✅ Make text readable
+            labelStyle: TextStyle(fontSize: 9), // ✅ Slightly smaller
             majorGridLines: MajorGridLines(
-                width: 1, color: Color(0xFFBDBDBD), dashArray: [3]),
-            // interval: 20, // minimummum: 50,
+              width: 1, color: Color(0xFFBDBDBD), dashArray: [3],
+            ),
           ),
           // isTransposed: true,
           // enableAxisAnimation: true,
@@ -166,7 +85,7 @@ class _InsulinChartState extends State<InsulinChart> {
                   canShowMarker: false,
                   // borderColor: Colors.red,
                   borderRadius: 8.h,
-                  format: 'point.y',
+                  format: 'point.x : point.y',
                   color: Colors.black87,
                   arrowWidth: 23,
                   textStyle: TextStyle(
@@ -182,7 +101,7 @@ class _InsulinChartState extends State<InsulinChart> {
 
             ColumnSeries<ChartData, String>(
               width: 0.40,
-              dataSource: data,
+              dataSource: widget.data,
               animationDuration: 1000,
               // dashArray: [7],
               // dataLabelSettings: DataLabelSettings(
@@ -226,10 +145,11 @@ class _InsulinChartState extends State<InsulinChart> {
 }
 
 class ChartData {
-  final String category;
+  final String category;    // Truncated label
+  final String fullLabel;   // Full course name
   final double value;
   final Color color;
   bool isSelected;
 
-  ChartData(this.category, this.value, this.color, {this.isSelected = false});
+  ChartData(this.category, this.fullLabel, this.value, this.color, {this.isSelected = false});
 }

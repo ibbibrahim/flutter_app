@@ -1,5 +1,4 @@
 import 'package:login_portal/utils/size_utils.dart';
-
 import '../../../utils/app_decoration.dart';
 import '../../../utils/custom_text_style.dart';
 import '../../../utils/image_constant.dart';
@@ -24,14 +23,10 @@ class ExamdetailsItemWidget extends StatelessWidget {
     required this.passMarks,
     required this.time,
     required this.date,
-  }) : super(
-          key: key,
-        );
-
-  // ExamdetailsItemWidgetdetailsItemModel examdetailsItemModelObj;
+  }) : super(key: key);
 
   var controller =
-      Get.put<ExamExamScheduleController>(ExamExamScheduleController());
+  Get.put<ExamExamScheduleController>(ExamExamScheduleController());
 
   @override
   Widget build(BuildContext context) {
@@ -54,12 +49,11 @@ class ExamdetailsItemWidget extends StatelessWidget {
             style: theme.textTheme.titleMedium,
           ),
           Padding(
-            padding: EdgeInsets.only(
-              top: 17.v,
-              right: 80.h,
-            ),
+            padding: EdgeInsets.only(top: 17.v),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                /// First column (left)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -70,13 +64,11 @@ class ExamdetailsItemWidget extends StatelessWidget {
                           height: 18.adaptSize,
                           width: 18.adaptSize,
                         ),
-                        Padding(
-                          padding: EdgeInsets.only(left: 8.h),
-                          child: Text(
-                            totalMarks,
-                            overflow: TextOverflow.ellipsis,
-                            style: CustomTextStyles.bodyMediumBlack900,
-                          ),
+                        SizedBox(width: 8.h),
+                        Text(
+                          totalMarks,
+                          overflow: TextOverflow.ellipsis,
+                          style: CustomTextStyles.bodyMediumBlack900,
                         ),
                       ],
                     ),
@@ -88,20 +80,22 @@ class ExamdetailsItemWidget extends StatelessWidget {
                           height: 18.adaptSize,
                           width: 18.adaptSize,
                         ),
-                        Padding(
-                          padding: EdgeInsets.only(left: 8.h),
-                          child: Text(
-                            date,
-                            overflow: TextOverflow.ellipsis,
-                            style: CustomTextStyles.bodyMediumBlack900,
-                          ),
+                        SizedBox(width: 8.h),
+                        Text(
+                          date,
+                          overflow: TextOverflow.ellipsis,
+                          style: CustomTextStyles.bodyMediumBlack900,
                         ),
                       ],
                     ),
                   ],
                 ),
-                Padding(
-                  padding: EdgeInsets.only(left: 32.h),
+
+                /// Spacer between columns
+                SizedBox(width: 32.h),
+
+                /// Second column (right) with Expanded
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -112,13 +106,11 @@ class ExamdetailsItemWidget extends StatelessWidget {
                             height: 18.adaptSize,
                             width: 18.adaptSize,
                           ),
-                          Padding(
-                            padding: EdgeInsets.only(left: 8.h),
-                            child: Text(
-                              passMarks,
-                              overflow: TextOverflow.ellipsis,
-                              style: CustomTextStyles.bodyMediumBlack900,
-                            ),
+                          SizedBox(width: 8.h),
+                          Text(
+                            passMarks,
+                            overflow: TextOverflow.ellipsis,
+                            style: CustomTextStyles.bodyMediumBlack900,
                           ),
                         ],
                       ),
@@ -130,13 +122,11 @@ class ExamdetailsItemWidget extends StatelessWidget {
                             height: 18.adaptSize,
                             width: 18.adaptSize,
                           ),
-                          Padding(
-                            padding: EdgeInsets.only(left: 8.h),
-                            child: Text(
-                              time,
-                              overflow: TextOverflow.ellipsis,
-                              style: CustomTextStyles.bodyMediumBlack900,
-                            ),
+                          SizedBox(width: 8.h),
+                          Text(
+                            time,
+                            overflow: TextOverflow.ellipsis,
+                            style: CustomTextStyles.bodyMediumBlack900,
                           ),
                         ],
                       ),

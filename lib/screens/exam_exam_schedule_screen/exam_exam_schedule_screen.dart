@@ -12,8 +12,7 @@ class ExamExamScheduleScreen extends GetWidget<ExamExamScheduleController> {
   Widget build(BuildContext context) {
     mediaQueryData = MediaQuery.of(context);
     return ListView.separated(
-
-        padding: EdgeInsets.only(left: 20.h,right: 20.h,top: 30.h),
+        padding: EdgeInsets.only(left: 20.h, right: 20.h, top: 30.h),
         physics: BouncingScrollPhysics(),
         // shrinkWrap: true,
         separatorBuilder: (context, index) {
@@ -22,7 +21,7 @@ class ExamExamScheduleScreen extends GetWidget<ExamExamScheduleController> {
         itemCount: examlListData.length,
         itemBuilder: (context, index) {
           return ExamdetailsItemWidget(
-              subject:examlListData[index].subject,
+              subject: examlListData[index].subject,
               totalMarks: examlListData[index].totalMarks,
               passMarks: examlListData[index].passMarks,
               time: examlListData[index].time,

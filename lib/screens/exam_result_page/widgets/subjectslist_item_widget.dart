@@ -26,7 +26,7 @@ class SubjectslistItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 58.h,
+      width: 150.h, // increase width to show full text
       child: Align(
         alignment: Alignment.center,
         child: Column(
@@ -40,18 +40,17 @@ class SubjectslistItemWidget extends StatelessWidget {
                     width: 10.adaptSize,
                     margin: EdgeInsets.only(bottom: 4.v),
                     decoration: BoxDecoration(
-                      color:color?? theme.colorScheme.errorContainer,
-                      borderRadius: BorderRadius.circular(
-                        5.h,
-                      ),
+                      color: color ?? theme.colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(5.h),
                     ),
                   ),
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.only(left: 10.h),
                       child: Text(
-                        text??"",
-                        overflow: TextOverflow.ellipsis,
+                        text ?? "",
+                        softWrap: true,
+                        overflow: TextOverflow.visible,
                         style: CustomTextStyles.labelLargeBlack900,
                       ),
                     ),
@@ -60,35 +59,10 @@ class SubjectslistItemWidget extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16.v),
-            // Row(
-            //   children: [
-            //     Container(
-            //       height: 10.adaptSize,
-            //       width: 10.adaptSize,
-            //       margin: EdgeInsets.only(
-            //         top: 1.v,
-            //         bottom: 3.v,
-            //       ),
-            //       decoration: BoxDecoration(
-            //         color:color?? appTheme.amber300,
-            //         borderRadius: BorderRadius.circular(
-            //           5.h,
-            //         ),
-            //       ),
-            //     ),
-            //     Padding(
-            //       padding: EdgeInsets.only(left: 10.h),
-            //       child:Text(
-            //         text??"",
-            //         overflow: TextOverflow.ellipsis,
-            //         style: CustomTextStyles.labelLargeBlack900,
-            //       ),
-            //     ),
-            //   ],
-            // ),
           ],
         ),
       ),
     );
+
   }
 }
