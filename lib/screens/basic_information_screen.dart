@@ -152,36 +152,39 @@ class _BasicInformationScreenState extends State<BasicInformationScreen> {
                           //   'icon': Icons.signpost,
                           //   'value': studentData['StreetNo'].toString()
                           // },
-                          {
-                            'icon': Icons.route,
-                            'value': studentData['StreetName']
-                          },
+                          // {
+                          //   'icon': Icons.route,
+                          //   'value': studentData['NewAddress']
+                          // },
                           // {
                           //   'icon': Icons.location_city,
                           //   'value': studentData['ZoneNo'].toString()
                           // },
-                          {'icon': Icons.map, 'value': studentData['ZoneName'] +', '+studentData['ZoneNo'].toString() + ', ' + (studentData['FlatVilla'] == 0 ? 'Flat' : 'Villa'),},
+                          {'icon': Icons.map, 'value': studentData['ZoneName']},
                           // {
                           //   'icon': Icons.markunread_mailbox,
                           //   'value': studentData['ZipCode'] ?? 'N/A'
                           // },
-                          // {
-                          //   'icon': Icons.apartment,
-                          //   'value':
-                          //       studentData['FlatVilla'] == 0 ? 'Flat' : 'Villa'
-                          // },
                           {
-                            'icon': Icons.business,
-                            'value': studentData['CompoundName'] ?? 'N/A'
+                            'icon': Icons.apartment,
+                            'value': (studentData['FlatVilla'] == 0 ? 'Flat' : 'Villa') +
+                                ', ' +
+                                (studentData['CompoundStandAlone'] == 1 ? 'Standalone' : 'Compound'),
                           },
+                          // if (studentData['CompoundName'] != null && studentData['CompoundName'].toString().trim().isNotEmpty)
+                          //   {
+                          //     'icon': Icons.business,
+                          //     'value': studentData['CompoundName']
+                          //   },
+                          // if (studentData['NearestLandmark'] != null && studentData['NearestLandmark'].toString().trim().isNotEmpty)
+                          //   {
+                          //     'icon': Icons.place,
+                          //     'value': studentData['NearestLandmark']
+                          //   },
                           {
-                            'icon': Icons.place,
-                            'value': studentData['NearestLandmark'] ?? 'N/A'
+                            'icon': Icons.location_city,
+                            'value': studentData['CityName'].toString()
                           },
-                          // {
-                          //   'icon': Icons.location_city,
-                          //   'value': studentData['City'].toString()
-                          // },
                           {
                             'icon': Icons.location_on,
                             'value': studentData['State'] ?? 'N/A'
@@ -379,7 +382,9 @@ class _BasicInformationScreenState extends State<BasicInformationScreen> {
       [String? unitNo] // optional
       ) {
     final textTheme = Theme.of(context).textTheme;
-    final isCompound = unitNo != null && unitNo.isNotEmpty;
+    final isCompound = unitNo != "0" && unitNo != null && unitNo.isNotEmpty ;
+    print("-------------------Test---------------------------$unitNo");
+
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

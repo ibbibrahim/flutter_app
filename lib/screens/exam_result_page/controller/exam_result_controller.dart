@@ -4,8 +4,9 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:login_portal/utils/funtions.dart';
 
+import '../models/end_of_term_result_model.dart';
 import '../models/exam_result_model.dart';
-import '../models/formative_result_model.dart';
+import '../models/subject_result_model.dart';
 import '../models/examprogressbar_item_model.dart';
 
 /// A controller class for the ExamResultPage.
@@ -21,9 +22,9 @@ class ExamResultController extends GetxController {
   var isLoadingProgress = true.obs;
 
 
-  Future<void> fetchFormativeData({required int studentId, required int termId}) async {
+  Future<void> fetchSubjectResults({required int studentId, required int termId}) async {
     try {
-      final action = 'getResultsForStudent'; // you can hash it if needed
+      final action = 'getResultsForStudent';
       final url = Uri.parse("https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash(action)}&StudentID=$studentId&TermID=$termId");
 
       final response = await http.get(url);
@@ -32,14 +33,14 @@ class ExamResultController extends GetxController {
         if (body['status'] == 'success') {
           var results = body['data'] as List;
 
-          examResultModelObj.value.formativeResults.value =
-              results.map((item) => FormativeResult.fromJson(item)).toList();
+          examResultModelObj.value.subjectResults.value =
+              results.map((item) => SubjectResult.fromJson(item)).toList();
 
           examResultModelObj.refresh();
         }
       }
     } catch (e) {
-      print('Error fetching formative results: $e');
+      print('Error fetching subject results: $e');
     }
   }
 
@@ -93,5 +94,29 @@ class ExamResultController extends GetxController {
       isLoadingProgress.value = false; // <- set to false even if there's an error
     }
   }
+
+  Future<void> fetchEndOfTermResult({required int studentId}) async {
+    try {
+      final action = 'getEndOfTermResults';
+      final url = Uri.parse("https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash(action)}&StudentID=$studentId");
+
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body);
+        if (body['status'] == 'success') {
+          var data = body['data'];
+          if (data.isNotEmpty) {
+            print(data);
+            final result = EndOfTermResult.fromJson(data[0]);
+            examResultModelObj.value.endOfTermResult.value = result;
+            examResultModelObj.refresh();
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching end-of-term result: $e');
+    }
+  }
+
 
 }

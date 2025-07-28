@@ -78,9 +78,10 @@ class ParentDetailsScreen extends StatelessWidget {
                             'value': studentData['FatherQatarID'] ?? 'N/A'
                           },
                           {
-                            'icon': Icons.work, // occupation
-                            'value': studentData['FatherOccupation'] ?? 'N/A'
+                            'icon': Icons.work,
+                            'value': '${studentData['FatherOccupation'] ?? 'N/A'} at ${studentData['FatherCompany'] ?? ''}',
                           },
+
                           {
                             'icon': Icons.auto_stories, // religion
                             'value': studentData['ReligionID'] == '1' ? 'Islam' : 'Other'

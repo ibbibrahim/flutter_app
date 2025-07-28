@@ -5,7 +5,7 @@ class StudentController extends GetxController {
   late bool hasSiblings;
   late List<dynamic>? siblings;
 
-  /// call this once after a successful login
+  /// Call this once after a successful login
   void setStudent({
     required Map<String, dynamic> json,
     required bool hasSiblingsFlag,
@@ -14,5 +14,12 @@ class StudentController extends GetxController {
     student      = json;
     hasSiblings  = hasSiblingsFlag;
     siblings     = sibs;
+  }
+
+  /// Call this during logout to clear all student data
+  void clearStudent() {
+    student = {};
+    hasSiblings = false;
+    siblings = null;
   }
 }

@@ -1,109 +1,110 @@
-import 'package:login_portal/utils/size_utils.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
-
-import '../../../utils/app_decoration.dart';
-import '../../../utils/theme_helper.dart';
-import '../../../widgets/custom_image_view.dart';
-import '../controller/first_term_exam_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:login_portal/utils/size_utils.dart';
+import '../../../utils/theme_helper.dart';
+import '../../exam_result_page/models/subject_result_model.dart';
 
-// ignore: must_be_immutable
 class FirstTermExamItemWidget extends StatelessWidget {
-final String? image;
-final String? text;
-final double? progress;
-final String? progressText;
- FirstTermExamItemWidget(
-    {
-    Key? key, this.image, this.text, this.progress, this.progressText,
-  }) : super(
-          key: key,
-        );
+  final SubjectResult result;
 
-  // FirstTermExamItemModel firstTermExamItemModelObj;
-
-  var controller = Get.find<FirstTermExamController>();
+  const FirstTermExamItemWidget({Key? key, required this.result})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(8.h),
-      decoration: AppDecoration.fillGray.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-      ),
-      child: Row(
-        children: [
-          CustomImageView(
-            imagePath: image,
-            // imagePath: ImageConstant.imgRectangle4432,
-            height: 72.h,
-            width: 72.h,
-            radius: BorderRadius.circular(
-              8.h,
-            ),
+      margin: EdgeInsets.only(bottom: 12.v),
+      padding: EdgeInsets.all(12.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.h),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: Offset(0, 4),
           ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 16.h,
-                top: 16.v,
-                bottom: 14.v,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(bottom: 1.v),
-                          child: Text(
-                            text!,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleMedium,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        progressText!,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyLarge,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 12.v),
-                  // LinearProgressIndicator(
-                  //   value: progress,
-                  //   backgroundColor: appTheme.gray30001,
-                  //   valueColor: AlwaysStoppedAnimation<Color>(
-                  //     theme.colorScheme.primary,
-                  //   ),
-                  // ),
-                  LinearPercentIndicator(
-                    barRadius: Radius.circular(12.h),
-                    width: 276.h,
-                    animation: true,
-                    animationDuration: 1000,
-                    lineHeight:8.0,
-                    padding: EdgeInsets.all(0),
-                    backgroundColor:  appTheme.blueGray100,
-                    // leading: new Text("left content"),
-                    // trailing: new Text("right content"),
-                    percent: progress!,
-                    // center: Text("20.0%"),
-                    // linearStrokeCap: LinearStrokeCap.butt,
-                    progressColor:  theme
-                        .colorScheme.primary,
-                  ),
-                ],
-              ),
-            ),
+        ],
+        border: Border(
+          left: BorderSide(
+            color: theme.colorScheme.primary,
+            width: 4,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            result.courseName,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium,
+          ),
+          SizedBox(height: 12.v),
+
+          _buildProgressRow(
+            label: "Formative",
+            percentage: result.fPercentage,
+            grade: result.fGrade,
+            color: Colors.orange,
+          ),
+          SizedBox(height: 12.v),
+
+          _buildProgressRow(
+            label: "Summative",
+            percentage: result.sPercentage ?? 0,
+            grade: result.sGrade ?? "-",
+            color: Colors.blue,
+          ),
+          SizedBox(height: 12.v),
+
+          _buildProgressRow(
+            label: "Total Percentage",
+            percentage: result.overallPercentage ?? 0,
+            grade: result.overallGrade ?? "-",
+            color: Colors.green,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProgressRow({
+    required String label,
+    required double percentage,
+    required String grade,
+    required Color color,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "$label: $grade",
+              style: theme.textTheme.bodyLarge,
+            ),
+            Text(
+              "${percentage.toStringAsFixed(1)}%",
+              style: theme.textTheme.bodyLarge,
+            ),
+          ],
+        ),
+        SizedBox(height: 6.v),
+        LinearPercentIndicator(
+          barRadius: Radius.circular(12.h),
+          width: 276.h,
+          animation: true,
+          animationDuration: 1000,
+          lineHeight: 8.0,
+          padding: EdgeInsets.zero,
+          backgroundColor: appTheme.blueGray100,
+          percent: (percentage / 100).clamp(0.0, 1.0),
+          progressColor: color,
+        ),
+      ],
     );
   }
 }

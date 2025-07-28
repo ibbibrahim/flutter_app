@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
+import 'package:login_portal/screens/exam_result_page/widgets/endoftermprogressbar_item_widget.dart';
 
+import '../../controllers/student_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/custom_text_style.dart';
 import '../../widgets/insulin_chart.dart';
@@ -52,10 +54,13 @@ class _ExamResultPageState extends State<ExamResultPage> {
   @override
   void initState() {
     super.initState();
-    controller.fetchFormativeData(
-        studentId: 4837, termId: 17); // <- use real IDs
 
-    controller.fetchTermWiseResults(studentId: 4837);
+    final studentData = Get.find<StudentController>().student;
+    final studentId = studentData['StudentID'];
+
+    // controller.fetchSubjectResults(studentId: studentId, termId: 17);
+    controller.fetchTermWiseResults(studentId: studentId);
+    controller.fetchEndOfTermResult(studentId: studentId);
   }
 
   @override
@@ -69,42 +74,45 @@ class _ExamResultPageState extends State<ExamResultPage> {
           padding: EdgeInsets.only(left: 20.h, top: 24.v, right: 20.h),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text("lbl_overall_results".tr,
+                style: CustomTextStyles.titleLarge22),
+            SizedBox(height: 19.v),
             Obx(() {
-              final chartData = controller
-                  .examResultModelObj.value.formativeResults.value
-                  .asMap()
-                  .entries
-                  .map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                final color =
-                    colors[index % colors.length]; // loop through colors safely
-                return ChartData(
-                  item.courseName.length > 10
-                      ? '${item.courseName.substring(0, 4)}...'
-                      : item.courseName,
-                  item.courseName,
-                  item.fPercentage,
-                  color,
-                );
-              }).toList();
-
-              if (chartData.isEmpty) {
+              if (controller.isLoadingProgress.value) {
                 return Center(child: CircularProgressIndicator());
               }
 
-              return Column(
-                children: [
-                  InsulinChart(data: chartData),
-                  SizedBox(height: 25.h),
-                  _buildDynamicLegend(chartData),
-                ],
-              );
+              final progressBars = controller
+                  .examResultModelObj.value.examprogressbarItemList.value;
+
+              if (progressBars.isEmpty) {
+                return Center(child: Text("No results available."));
+              }
+
+              return ListView.separated(
+                padding: EdgeInsets.zero,
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                separatorBuilder: (context, index) {
+                  return SizedBox(height: 16.v);
+                },
+                itemCount: progressBars.length,
+                itemBuilder: (context, index) {
+                  final model = progressBars[index];
+                  return ExamprogressbarItemWidget(
+                    model,
+                    onTapExamprogressbar: () {
+                      final termId = int.tryParse(model.id!.value) ?? 0;
+                      onTapExamprogressbar(termId);
+                    },
+                  );
+                },
+              ).marginOnly(bottom: 24.h);
             }),
 
-            SizedBox(
-              height: 25.h,
-            ),
+            // SizedBox(
+            //   height: 25.h,
+            // ),
             // Align(
             //     alignment: Alignment.center,
             //     child: Container(
@@ -148,41 +156,92 @@ class _ExamResultPageState extends State<ExamResultPage> {
             //                 secondText: colorListSecond[index].secondText,
             //               );
             //             }))),
-            SizedBox(height: 33.v),
-            Text("lbl_overall_results".tr,
-                style: CustomTextStyles.titleLarge22),
-            SizedBox(height: 19.v),
+            SizedBox(height: 12.v),
+
+            // Obx(() {
+            //   final subjectResults =
+            //       controller.examResultModelObj.value.subjectResults.value;
+            //
+            //   if (subjectResults.isEmpty) {
+            //     return Center(child: CircularProgressIndicator());
+            //   }
+            //
+            //   final chartData = subjectResults.asMap().entries.map((entry) {
+            //     final index = entry.key;
+            //     final item = entry.value;
+            //     final color = colors[index % colors.length];
+            //
+            //     return ChartData(
+            //       item.courseName.length > 10
+            //           ? '${item.courseName.substring(0, 4)}...'
+            //           : item.courseName,
+            //       item.courseName,
+            //       item.overallPercentage ?? 0,
+            //       color,
+            //     );
+            //   }).toList();
+            //
+            //   return Column(
+            //     children: [
+            //       InsulinChart(data: chartData),
+            //       SizedBox(height: 25.h),
+            //       _buildDynamicLegend(chartData),
+            //     ],
+            //   );
+            // }),
             Obx(() {
-              if (controller.isLoadingProgress.value) {
+              final endResult =
+                  controller.examResultModelObj.value.endOfTermResult.value;
+
+              if (endResult == null) {
                 return Center(child: CircularProgressIndicator());
               }
 
-              final progressBars = controller
-                  .examResultModelObj.value.examprogressbarItemList.value;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("End of Term", style: CustomTextStyles.titleLarge22),
+                  SizedBox(height: 12.v),
+                  EndOfTermCombinedProgressbarWidget(
+                    overallT1: endResult.overallT1,
+                    overallT2: endResult.overallT2,
+                    endOfTerm: endResult.endOfTerm,
+                  ),
+                  SizedBox(height: 24.v),
+                ],
+              );
 
-              if (progressBars.isEmpty) {
-                return Center(child: Text("No results available."));
-              }
+            })
 
-              return ListView.separated(
-                padding: EdgeInsets.zero,
-                physics: NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                separatorBuilder: (context, index) {
-                  return SizedBox(height: 16.v);
-                },
-                itemCount: progressBars.length,
-                itemBuilder: (context, index) {
-                  final model = progressBars[index];
-                  return ExamprogressbarItemWidget(
-                    model,
-                    onTapExamprogressbar: () {
-                      onTapExamprogressbar();
-                    },
-                  );
-                },
-              ).marginOnly(bottom: 24.h);
-            }),
+            // Obx(() {
+            //   final endResult =
+            //       controller.examResultModelObj.value.endOfTermResult.value;
+            //
+            //   if (endResult == null) {
+            //     return Center(child: CircularProgressIndicator()); // No chart if no data
+            //   }
+            //
+            //   final chartData = [
+            //     ChartData("Term 1", "Term 1", endResult.overallT1.toDouble(),
+            //         colors[0]),
+            //     ChartData("Term 2", "Term 2", endResult.overallT2.toDouble(),
+            //         colors[1]),
+            //     ChartData("Final", "End of Term",
+            //         endResult.endOfTerm.toDouble(), colors[2]),
+            //   ];
+            //
+            //   return Column(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: [
+            //       Text("End of Term",
+            //           style: CustomTextStyles.titleLarge22),
+            //       SizedBox(height: 12.v),
+            //       InsulinChart(data: chartData),
+            //       SizedBox(height: 25.h),
+            //       _buildDynamicLegend(chartData),
+            //     ],
+            //   );
+            // })
           ]),
         ),
       ],
@@ -193,10 +252,13 @@ class _ExamResultPageState extends State<ExamResultPage> {
 
   /// When the action is triggered, this function uses the [Get] package to
   /// push the named route for the firstTermExamScreen.
-  onTapExamprogressbar() {
-    Get.toNamed(
-      AppRoutes.firstTermExamScreen,
-    );
+  void onTapExamprogressbar(int termId) {
+    final studentId = Get.find<StudentController>().student['StudentID'];
+
+    Get.toNamed(AppRoutes.firstTermExamScreen, arguments: {
+      'termId': termId,
+      'studentId': studentId,
+    });
   }
 
   Widget _buildDynamicLegend(List<ChartData> chartData) {

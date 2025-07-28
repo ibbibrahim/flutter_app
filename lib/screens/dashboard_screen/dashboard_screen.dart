@@ -674,6 +674,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Navigate back to the login screen
     //Navigator.pushReplacementNamed(context, '/');
 
+    if (Get.isRegistered<StudentController>()) {
+      final sc = Get.find<StudentController>();
+      sc.clearStudent();               // Optional: clean values inside the controller
+      Get.delete<StudentController>(); // Required: remove it completely from memory
+    }
+
     Get.toNamed(
       AppRoutes.loginScreen
     );

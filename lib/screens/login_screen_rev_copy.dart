@@ -17,7 +17,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _fatherQatarIdController = TextEditingController();
+  final TextEditingController _fatherQatarIdController =
+      TextEditingController();
   bool _isLoading = false;
   bool _rememberMe = false;
 
@@ -27,7 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String _generateMd5Token(String secretKey) {
     final date = DateTime.now();
-    final formattedDate = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+    final formattedDate =
+        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
     final tokenInput = "$secretKey$formattedDate";
     return md5.convert(utf8.encode(tokenInput)).toString().toUpperCase();
   }
@@ -57,8 +59,9 @@ class _LoginScreenState extends State<LoginScreen> {
           print("==== Login Success Debug Info ====");
           print("User ID (Father Qatar ID): $fatherQatarId");
           print("FCM Token: $fcmToken");
-
-
+          if (fcmToken != null) {
+            await sendTokenToServer(fatherQatarId, fcmToken);
+          }
           if (data['status'] == "success" && data['data'] != null) {
             final List<dynamic> siblingsData = data['data'];
             if (siblingsData.length > 1) {
@@ -71,9 +74,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
               Get.offNamed(
                 AppRoutes.siblingsScreen,
-                arguments: siblingsData,   // still pass the list
+                arguments: siblingsData, // still pass the list
               );
-
             } else {
               sc.setStudent(
                 json: siblingsData[0],
@@ -91,17 +93,21 @@ class _LoginScreenState extends State<LoginScreen> {
             }
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(data['message'] ?? 'An unknown error occurred')),
+              SnackBar(
+                  content:
+                      Text(data['message'] ?? 'An unknown error occurred')),
             );
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to retrieve data! Please try again.')),
+            SnackBar(
+                content: Text('Failed to retrieve data! Please try again.')),
           );
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Network error! Please check your connection.')),
+          SnackBar(
+              content: Text('Network error! Please check your connection.')),
         );
       }
 
@@ -216,7 +222,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 16),
                             ),
                             keyboardType: TextInputType.number,
                             inputFormatters: [
@@ -273,20 +280,20 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               child: _isLoading
                                   ? SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
                                   : Text(
-                                'Log In',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                                      'Log In',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                             ),
                           ),
                         ],
@@ -301,4 +308,31 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  Future<void> sendTokenToServer(String fatherQatarId, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse("https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php"),
+        body: {
+          'Action': 'storeFCMToken',
+          'father_qatar_id': fatherQatarId,
+          'fcm_token': token,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data["status"] == "success") {
+          print("FCM token stored successfully.");
+        } else {
+          print("Error storing token: ${data["message"]}");
+        }
+      } else {
+        print("HTTP error ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Exception sending token: $e");
+    }
+  }
+
 }
