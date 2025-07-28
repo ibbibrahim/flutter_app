@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
-
 import 'package:login_portal/utils/funtions.dart';
 import 'package:login_portal/screens/student_health_update_screen.dart';
 
@@ -15,6 +14,7 @@ class HealthProfileScreen extends StatefulWidget {
   @override
   _HealthProfileScreenState createState() => _HealthProfileScreenState();
 }
+
 class _HealthProfileScreenState extends State<HealthProfileScreen> {
   Map<String, dynamic> healthData = {};
   bool isLoading = true;
@@ -54,49 +54,50 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
     }
   }
 
-  String _generateMd5Token(String secretKey) {
-    final date = DateTime.now();
-    final formattedDate = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-    final tokenInput = "$secretKey$formattedDate";
-    return md5.convert(utf8.encode(tokenInput)).toString().toUpperCase();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       body: Column(
         children: [
+          // App Bar
           Container(
             height: MediaQuery.of(context).orientation == Orientation.portrait
-                ? MediaQuery.of(context).size.height * 0.1
+                ? MediaQuery.of(context).size.height * 0.12
                 : MediaQuery.of(context).size.height * 0.2,
             decoration: BoxDecoration(
               color: Colors.blueAccent,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(10.0),
-                bottomRight: Radius.circular(10.0),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(16.0),
+                bottomRight: Radius.circular(16.0),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(2.0, 40.0, 16.0, 16.0),
+              padding: const EdgeInsets.fromLTRB(16.0, 56.0, 16.0, 16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
+                        icon: Icon(Icons.arrow_back, color: colorScheme.onPrimary),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                      SizedBox(width: 8.0),
+                      const SizedBox(width: 8.0),
                       Text(
                         'Health Profile',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                        style: textTheme.headlineSmall?.copyWith(
+                          color: colorScheme.onPrimary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -114,37 +115,41 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.blueAccent,
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      elevation: 2,
+                      backgroundColor: colorScheme.onPrimary,
+                      foregroundColor: colorScheme.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
                     ),
-                    icon: Icon(Icons.edit, size: 18),
-                    label: Text("Edit", style: TextStyle(fontSize: 14)),
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: Text("Edit", style: textTheme.labelLarge),
                   ),
                 ],
-              )
-              ,
+              ),
             ),
           ),
+
+          // Body
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(16.0),
               child: isLoading
                   ? Center(child: CircularProgressIndicator())
                   : hasError
                   ? Center(child: Text("Error loading health profile data"))
-                  : SingleChildScrollView( // Wrap content with SingleChildScrollView
-                child: _buildInfoTableCard('Health Profile Details', [
-                  ['Health Card Number', healthData['HealthcardNumber'] ?? 'N/A'],
-                  ['Blood Group', healthData['BloodGroup'] ?? 'N/A'],
-                  ['Weight (kg)', healthData['WeightInKg']?.toString() ?? 'N/A'],
-                  ['Height (feet)', healthData['HeightInFeet']?.toString() ?? 'N/A'],
-                  ['Height (inches)', healthData['HeightInInches']?.toString() ?? 'N/A'],
-                  ['BMI', healthData['StudentBMI']?.toString() ?? 'N/A'],
-                  ['Illness / Medical conditions', parseHtmlString(healthData['Allergies'] ?? 'N/A')],
-                  ['Allergies / Medication', parseHtmlString(healthData['Precautions'] ?? 'N/A')],
+                  : SingleChildScrollView(
+                child: _buildInfoCard(context, 'Health Profile', [
+                  {'label': 'Health Card Number', 'value': healthData['HealthcardNumber'] ?? 'N/A'},
+                  {'label': 'Blood Group', 'value': healthData['BloodGroup'] ?? 'N/A'},
+                  {'label': 'Weight (kg)', 'value': healthData['WeightInKg']?.toString() ?? 'N/A'},
+                  {'label': 'Height (feet)', 'value': healthData['HeightInFeet']?.toString() ?? 'N/A'},
+                  {'label': 'Height (inches)', 'value': healthData['HeightInInches']?.toString() ?? 'N/A'},
+                  {'label': 'BMI', 'value': healthData['StudentBMI']?.toString() ?? 'N/A'},
+                  {'label': 'Illness / Medical conditions', 'value': parseHtmlString(healthData['Allergies'] ?? 'N/A'), 'highlight': true},
+                  {'label': 'Allergies / Medication', 'value': parseHtmlString(healthData['Precautions'] ?? 'N/A'), 'highlight': true},
                 ]),
               ),
             ),
@@ -154,60 +159,82 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
     );
   }
 
-  Widget _buildInfoTableCard(String title, List<List<String>> data) {
+  Widget _buildInfoCard(BuildContext context, String title, List<Map<String, dynamic>> data) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceVariant,
+      margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueAccent,
-              ),
+          children: [
+            Row(
+              children: [
+                Icon(Icons.health_and_safety, size: 20, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: textTheme.titleLarge?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 16.0),
-            Table(
-              columnWidths: const {
-                0: FlexColumnWidth(2),
-                1: FlexColumnWidth(3),
-              },
-              border: TableBorder.all(color: Colors.grey[300]!),
-              children: data.map((row) {
-                // Apply light red background to entire row for 'Allergies' and 'Precautions'
-                if (row[0] == 'Illness / Medical conditions' || row[0] == 'Allergies / Medication') {
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: colorScheme.surface,
+                border: Border.all(color: colorScheme.outlineVariant, width: 1),
+              ),
+              child: Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(1.5),
+                  1: FlexColumnWidth(2.5),
+                },
+                children: data.map((item) {
+                  final highlight = item['highlight'] == true;
                   return TableRow(
                     decoration: BoxDecoration(
-                      color: Colors.red[100], // Light red background for the entire row
+                      color: highlight ? Colors.red.shade100 : Colors.transparent,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: colorScheme.outlineVariant,
+                          width: 1,
+                        ),
+                      ),
                     ),
-                    children: row.map((cell) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
                         child: Text(
-                          cell,
-                          style: TextStyle(fontSize: 14),
+                          item['label'],
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      );
-                    }).toList(),
-                  );
-                } else {
-                  return TableRow(
-                    children: row.map((cell) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 12.0),
                         child: Text(
-                          cell,
-                          style: TextStyle(fontSize: 14),
+                          item['value'],
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      );
-                    }).toList(),
+                      ),
+                    ],
                   );
-                }
-              }).toList(),
+                }).toList(),
+              ),
             ),
           ],
         ),

@@ -51,6 +51,13 @@ dependencies:
   provider: ^6.1.2
   font_awesome_flutter: ^10.8.0
   flutter_calendar_carousel: ^2.5.3
+  carousel_slider: ^5.0.0
+  get: ^4.7.2
+  cached_network_image: ^3.3.1
+  flutter_svg: ^2.0.9
+  google_fonts: ^4.0.4
+  percent_indicator: ^4.2.5
+  syncfusion_flutter_charts: ^29.2.5
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +77,7 @@ dev_dependencies:
 flutter:
   assets:
     - assets/
+    - assets/images/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

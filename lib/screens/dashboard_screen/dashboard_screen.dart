@@ -1,9 +1,13 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:login_portal/screens/dashboard_screen/widgets/dashboard_card_item_widget.dart';
 import 'package:login_portal/screens/policies_screen.dart';
+import 'package:login_portal/utils/size_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
 import 'package:login_portal/screens/basic_information_screen.dart';
 import 'package:login_portal/screens/attendance_screen_copy.dart';
@@ -16,8 +20,13 @@ import 'package:login_portal/screens/alert_screen.dart';
 import 'package:login_portal/screens/student_address_update_screen.dart';
 import 'package:login_portal/screens/student_health_update_screen.dart';
 
+import 'package:login_portal/routes/app_routes.dart';
 import 'package:login_portal/utils/notification_provider.dart';
 import 'package:login_portal/utils/funtions.dart';
+import 'package:login_portal/controllers/student_controller.dart';
+
+import 'models/dashboard_card_model.dart.dart';
+
 
 
 class DashboardScreen extends StatefulWidget {
@@ -49,10 +58,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Map;
-    final Map<String, dynamic> studentData = args['student'];
-    final hasSiblings = args['hasSiblings'] ?? false;
-    final siblingsList = args['siblings'] ?? null;
+    final sc            = Get.find<StudentController>();
+    final studentData   = sc.student;
+    final hasSiblings   = sc.hasSiblings;
+    final siblingsList  = sc.siblings;
     final notificationProvider = Provider.of<NotificationProvider>(context);
 
     String studentFullName =
@@ -143,24 +152,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
-          // Positioned(
-          //   top: 60,
-          //   right: 35,
-          //   child: Material(
-          //     shape: CircleBorder(),
-          //     color: Colors.transparent,
-          //     child: IconButton(
-          //       icon: Icon(
-          //         Icons.person,
-          //         color: Colors.white,
-          //       ),
-          //       onPressed: _showFatherDetails,
-          //       iconSize: 30.0,
-          //       padding: EdgeInsets.all(5.0),
-          //       splashRadius: 30.0,
-          //     ),
-          //   ),
-          // ),
           _buildStudentAvatar(studentData),
           Padding(
             padding: const EdgeInsets.only(top: 20.0),
@@ -244,7 +235,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 SizedBox(height: 10),
                 Expanded(
                   child: Container(
-                    padding: EdgeInsets.all(10.0),
+                    padding: EdgeInsets.all(1.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
@@ -252,178 +243,105 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         topRight: Radius.circular(10.0),
                       ),
                     ),
-                    child: Stack(
-                      children: <Widget>[
-                        selectedCard == null
-                            ? GridView.count(
-                          crossAxisCount: MediaQuery.of(context).orientation == Orientation.portrait
-                              ? 4 // 2 cards per row in portrait mode
-                              : 5, // 3 cards per row in landscape mode
-                          childAspectRatio: 1, // Make cards square
-                          crossAxisSpacing: 16.0,
-                          mainAxisSpacing: 16.0,
-                          padding: EdgeInsets.all(6.0),
-                          children: <Widget>[
-                            _buildCard(Icons.info,  () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => BasicInformationScreen(
-                                    studentData: studentData,
-                                    studentFullName: studentFullName,
-                                  ),
-                                ),
-                              );
-                            }),
-                            _buildCard(Icons.person_2, () {
-                              _showCard('Parent Information');
-                            }),
-                            // _buildCard(Icons.school, () {
-                            //   _showCard('Enrollment Information');
-                            // }),
-                            _buildCard(Icons.check_circle, () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AttendanceScreen(
-                                    studentId: studentData['StudentID'].toString(), // Pass the student ID to AttendanceScreen
-                                  ),
-                                ),
-                              );
-                            }),
-                            _buildCard(Icons.health_and_safety, () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => HealthProfileScreen(
-                                    studentId: studentData['StudentID'].toString(),
-                                    fatherQatarId: studentData['FatherQatarID'].toString(), // 👈 pass Father QID too
-                                  ),
-                                ),
-                              );
-                            }),
-
-                            _buildCard(Icons.star, () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => StudentAchievementsScreen(
-                                    studentId: studentData['StudentID'].toString(), // Passing the student ID to HealthProfileScreen
-                                  ),
-                                ),
-                              );
-                            }),
-                            _buildCard(Icons.menu_book, () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CoursesScreen(
-                                    gradeGroupId: studentData['GradeGroupID'].toString(), // Passing GradeGroupID to CoursesScreen
-                                    sectionId: studentData['SectionID'].toString(), // Passing SectionID to CoursesScreen
-                                  ),
-                                ),
-                              );
-                            }),
-                            _buildCard(Icons.attach_money, () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => FeeInvoiceScreen(
-                                    studentId: studentData['StudentID'].toString(),
-                                    sessionId: studentData['AcademicSessionID'].toString(),
-                                    feeTypeId: 1.toString(),// Passing SectionID to CoursesScreen
-                                  ),
-                                ),
-                              );
-                            }),
-                            _buildCard(Icons.policy, () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => WebPoliciesScreen(),
-                                ),
-                              );
-                            }),
-                            _buildCard(Icons.notifications, () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AlertScreen(),
-                                ),
-                              );
-                            }),
-                            // _buildCard(Icons.edit_location_alt_outlined, () {
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) => AddressUpdateScreen(
-                            //         studentId: studentData['StudentID'].toString(),
-                            //         fatherQatarId: studentData['FatherQatarID'].toString(),
-                            //       ),
-                            //     ),
-                            //   );
-                            // }),
-                            // _buildCard(Icons.health_and_safety_outlined, () {
-                            //   Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) => StudentHealthProfileScreen(
-                            //         studentId: generateMd5Hash(studentData['StudentID'].toString()),
-                            //         fatherQatarId: generateMd5Hash(studentData['FatherQatarID'].toString()),
-                            //       ),
-                            //     ),
-                            //   );
-                            // }),
-
-                            if(studentData['Bus'] != null)
-                              _buildCard(Icons.directions_bus, () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => BusDetailsScreen(
-                                      studentId: studentData['StudentID'].toString(), // Passing the student ID to HealthProfileScreen
+                    child: Column(
+                      children: [
+                        // 👇 Carousel goes here
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12.0, bottom: 10.0),
+                          child: CarouselSlider.builder(
+                            itemCount: 3,
+                            itemBuilder: (context, index, realIndex) {
+                              return Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                child: Container(
+                                  height: 150,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    image: DecorationImage(
+                                      fit: BoxFit.cover,
+                                      image: AssetImage('assets/images/Banner.png'), // Replace with your image path
                                     ),
                                   ),
-                                );
-                              }),
-                            if (hasSiblings)
-                              _buildCard(Icons.groups_2, () {
-                                Navigator.pushReplacementNamed(
-                                  context,
-                                  '/siblings',
-                                  arguments: siblingsList,
-                                );
-                              }),
-                          ],
-                        )
-                            : _buildDetailsView(
-                          cardName: selectedCard!,
-                          studentData: studentData,
-                          studentFullName: studentFullName,
-                          fatherFullName: fatherFullName,
-                          motherFullName: motherFullName,
-                          onBack: _goBack,
-                        ),
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          top: 0,
-                          child: Center(
-                            child: Opacity(
-                              opacity: 0.5, // Adjust opacity as needed
-                              child: Image.asset(
-                                'assets/tng_logo_complete.png',
-                                width: 250.0, // Adjust size as needed
-                                height: 100.0, // Adjust size as needed
-                              ),
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 20),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          "Transforming Information to Knowledge,Knowledge to Wisdom.",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.amber,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                        SizedBox(height: 10),
+                                        // ElevatedButton(
+                                        //   style: ElevatedButton.styleFrom(
+                                        //     backgroundColor: Colors.black.withOpacity(0.6),
+                                        //     padding: EdgeInsets.symmetric(horizontal: 16),
+                                        //   ),
+                                        //   onPressed: () {},
+                                        //   child: Text("Check Now"),
+                                        // ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                            options: CarouselOptions(
+                              height: 150,
+                              autoPlay: true,
+                              enlargeCenterPage: true,
+                              viewportFraction: 1,
+                              autoPlayCurve: Curves.fastOutSlowIn,
+                              autoPlayAnimationDuration: Duration(milliseconds: 600),
+                              enableInfiniteScroll: true,
                             ),
+                          ),
+                        ),
+
+                        // 👇 Existing grid view
+                        Expanded(
+                          child: selectedCard == null
+                              ? Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: GridView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: dashboardCards.length,
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                mainAxisSpacing: 20,
+                                crossAxisSpacing: 8,
+                                mainAxisExtent: 90,
+                              ),
+                              itemBuilder: (context, index) {
+                                final card = dashboardCards[index];
+                                return DashboardCardItemWidget(
+                                  image: card.image!,
+                                  color: card.color!,
+                                  text: card.text!,
+                                  onTap: card.onTap!,
+                                );
+                              },
+                            ),
+                          )
+                              : _buildDetailsView(
+                            cardName: selectedCard!,
+                            studentData: studentData,
+                            studentFullName: studentFullName,
+                            fatherFullName: fatherFullName,
+                            motherFullName: motherFullName,
+                            onBack: _goBack,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
+                )
 
               ],
             ),
@@ -754,6 +672,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await prefs.clear();
 
     // Navigate back to the login screen
-    Navigator.pushReplacementNamed(context, '/');
+    //Navigator.pushReplacementNamed(context, '/');
+
+    if (Get.isRegistered<StudentController>()) {
+      final sc = Get.find<StudentController>();
+      sc.clearStudent();               // Optional: clean values inside the controller
+      Get.delete<StudentController>(); // Required: remove it completely from memory
+    }
+
+    Get.toNamed(
+      AppRoutes.loginScreen
+    );
   }
 }

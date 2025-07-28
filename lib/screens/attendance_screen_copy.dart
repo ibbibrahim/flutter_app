@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
+import 'package:get/get.dart';
 
-
+import 'package:login_portal/controllers/student_controller.dart';
 import 'package:login_portal/screens/swipeable_calendar_view.dart';
 import 'package:login_portal/utils/funtions.dart';
 
 class AttendanceScreen extends StatefulWidget {
-  final String studentId;
-
-  AttendanceScreen({required this.studentId});
+  AttendanceScreen({Key? key}) : super(key: key);            // constructor is now empty
 
   @override
   _AttendanceScreenState createState() => _AttendanceScreenState();
@@ -28,10 +27,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Future<void> fetchAttendanceData() async {
+
+    final sc        = Get.find<StudentController>();
+    final studentId = sc.student['StudentID'].toString();
+
     try {
       final response = await http.get(
         Uri.parse(
-          'https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash('getStudentAttendance')}&student_id=${widget.studentId}',
+          'https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash('getStudentAttendance')}&student_id=${studentId}',
         ),
       );
       if (response.statusCode == 200) {

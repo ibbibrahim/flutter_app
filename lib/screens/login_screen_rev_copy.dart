@@ -3,8 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
-import 'package:login_portal/screens/sibling_information_screen.dart';
+import 'package:get/get.dart';
 
+import 'package:login_portal/routes/app_routes.dart';
+import 'package:login_portal/controllers/student_controller.dart';
+import 'package:login_portal/screens/sibling_information_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -14,7 +17,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _fatherQatarIdController = TextEditingController();
+  final TextEditingController _fatherQatarIdController =
+      TextEditingController();
   bool _isLoading = false;
   bool _rememberMe = false;
 
@@ -24,7 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String _generateMd5Token(String secretKey) {
     final date = DateTime.now();
-    final formattedDate = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+    final formattedDate =
+        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
     final tokenInput = "$secretKey$formattedDate";
     return md5.convert(utf8.encode(tokenInput)).toString().toUpperCase();
   }
@@ -47,43 +52,62 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (response.statusCode == 200) {
           final Map<String, dynamic> data = json.decode(response.body);
+          final sc = Get.put(StudentController(), permanent: true);
 
           final fcmToken = await FirebaseMessaging.instance.getToken();
 
           print("==== Login Success Debug Info ====");
           print("User ID (Father Qatar ID): $fatherQatarId");
           print("FCM Token: $fcmToken");
-
-
+          if (fcmToken != null) {
+            await sendTokenToServer(fatherQatarId, fcmToken);
+          }
           if (data['status'] == "success" && data['data'] != null) {
             final List<dynamic> siblingsData = data['data'];
             if (siblingsData.length > 1) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SiblingInformationScreen(siblings: siblingsData),
-                ),
+              // Navigator.pushReplacement(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) => SiblingInformationScreen(siblings: siblingsData),
+              //   ),
+              // );
+
+              Get.offNamed(
+                AppRoutes.siblingsScreen,
+                arguments: siblingsData, // still pass the list
               );
             } else {
-              Navigator.pushReplacementNamed(
-                context,
-                '/dashboard',
-                arguments: {'student': siblingsData.isNotEmpty ? siblingsData[0] : null, 'hasSiblings': false},
+              sc.setStudent(
+                json: siblingsData[0],
+                hasSiblingsFlag: false,
+                sibs: null,
               );
+              // land on new bottom-nav container
+              Get.offNamed(AppRoutes.dashboardScreen);
+
+              // Navigator.pushReplacementNamed(
+              //   context,
+              //   '/dashboard',
+              //   arguments: {'student': siblingsData.isNotEmpty ? siblingsData[0] : null, 'hasSiblings': false},
+              // );
             }
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(data['message'] ?? 'An unknown error occurred')),
+              SnackBar(
+                  content:
+                      Text(data['message'] ?? 'An unknown error occurred')),
             );
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to retrieve data! Please try again.')),
+            SnackBar(
+                content: Text('Failed to retrieve data! Please try again.')),
           );
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Network error! Please check your connection.')),
+          SnackBar(
+              content: Text('Network error! Please check your connection.')),
         );
       }
 
@@ -198,7 +222,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 16),
                             ),
                             keyboardType: TextInputType.number,
                             inputFormatters: [
@@ -255,20 +280,20 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               child: _isLoading
                                   ? SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
                                   : Text(
-                                'Log In',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                                      'Log In',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                             ),
                           ),
                         ],
@@ -283,4 +308,31 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  Future<void> sendTokenToServer(String fatherQatarId, String token) async {
+    try {
+      final response = await http.post(
+        Uri.parse("https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php"),
+        body: {
+          'Action': 'storeFCMToken',
+          'father_qatar_id': fatherQatarId,
+          'fcm_token': token,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data["status"] == "success") {
+          print("FCM token stored successfully.");
+        } else {
+          print("Error storing token: ${data["message"]}");
+        }
+      } else {
+        print("HTTP error ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Exception sending token: $e");
+    }
+  }
+
 }
