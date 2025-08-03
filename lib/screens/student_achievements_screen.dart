@@ -35,6 +35,7 @@ class _StudentAchievementsScreenState extends State<StudentAchievementsScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print(data);
         setState(() {
           achievementsData = Map<String, dynamic>.from(data);
           isLoading = false;
@@ -52,14 +53,7 @@ class _StudentAchievementsScreenState extends State<StudentAchievementsScreen> {
       });
     }
   }
-
-  String _generateMd5Token(String secretKey) {
-    final date = DateTime.now();
-    final formattedDate = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-    final tokenInput = "$secretKey$formattedDate";
-    return md5.convert(utf8.encode(tokenInput)).toString().toUpperCase();
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -103,9 +103,9 @@ class _FeeInvoiceScreenState extends State<FeeInvoiceScreen> {
       ..setBackgroundColor(Color(100))
       ..loadRequest(Uri.parse(
         'https://pers.tngqatar.online/Module/Fee/StudentInvoice.php'
-            '?StudentID=${generateMd5Hash(widget.studentId)}'
-            '&SessionID=${generateMd5Hash(widget.sessionId)}'
-            '&FeeTypeID=${generateMd5Hash(widget.feeTypeId)}',
+            '?StudentID=${widget.studentId}'
+            '&SessionID=${widget.sessionId}'
+            '&FeeTypeID=${widget.feeTypeId}',
       ));
   }
 

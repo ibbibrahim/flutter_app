@@ -39,7 +39,7 @@ class SiblingInformationScreen extends StatelessWidget {
                   Icons.logout,
                   color: Colors.white,
                 ),
-                onPressed: () {},
+                onPressed: _logout,
                 iconSize: 25.0,
                 padding: EdgeInsets.all(5.0),
                 splashRadius: 30.0,
@@ -86,6 +86,7 @@ class SiblingInformationScreen extends StatelessWidget {
                               hasSiblingsFlag: true,
                               sibs: siblings,
                             );
+                            sc.update();
 
                             Navigator.pushReplacementNamed(
                               context,
@@ -158,12 +159,19 @@ class SiblingInformationScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _logout(BuildContext context) async {
-    // Clear any saved session data (e.g., SharedPreferences)
+  Future<void> _logout() async {
+    // Clear local saved session
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
 
-    // Navigate back to the login screen
-    Navigator.pushReplacementNamed(context, '/');
+    // Clear and delete StudentController
+    if (Get.isRegistered<StudentController>()) {
+      final sc = Get.find<StudentController>();
+      sc.clearStudent();               // Clear values (optional)
+      Get.delete<StudentController>(); // Unregister and dispose
+    }
+
+    // Navigate to login, clearing route history
+    Get.offAllNamed(AppRoutes.loginScreen);
   }
 }

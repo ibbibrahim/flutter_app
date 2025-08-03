@@ -10,6 +10,8 @@ import 'package:login_portal/controllers/student_controller.dart';
 import 'package:login_portal/screens/sibling_information_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+import '../utils/funtions.dart';
+
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -19,19 +21,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fatherQatarIdController =
       TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  bool _isSignup = false; // Toggle flag for signup mode
+
+
   bool _isLoading = false;
   bool _rememberMe = false;
 
   String _generateMd5(String input) {
     return md5.convert(utf8.encode(input)).toString();
-  }
-
-  String _generateMd5Token(String secretKey) {
-    final date = DateTime.now();
-    final formattedDate =
-        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-    final tokenInput = "$secretKey$formattedDate";
-    return md5.convert(utf8.encode(tokenInput)).toString().toUpperCase();
   }
 
   void _login() async {
@@ -40,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = true;
       });
 
-      String actionToken = _generateMd5Token('getSiblingsDetails');
+      String actionToken = generateMd5Hash('getSiblingsDetails');
       String fatherQatarId = _fatherQatarIdController.text;
 
       try {
@@ -82,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 hasSiblingsFlag: false,
                 sibs: null,
               );
+              sc.update();
               // land on new bottom-nav container
               Get.offNamed(AppRoutes.dashboardScreen);
 
@@ -117,6 +116,51 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _signup() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final qid = _fatherQatarIdController.text.trim();
+      final email = _emailController.text.trim();
+      final actionToken = generateMd5Hash('parentSignup');
+
+      try {
+        final response = await http.post(
+          Uri.parse('https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=$actionToken'),
+          body: {
+            'qid': qid,
+            'email': email,
+          },
+        );
+
+        final data = json.decode(response.body);
+        if (data['status'] == 'success') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Signup successful. Check your email to set your password.')),
+          );
+          setState(() {
+            _isSignup = false; // Switch to login screen
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['message'] ?? 'Signup failed.')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Network error. Please try again.')),
+        );
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,13 +175,13 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
+                  // IconButton(
+                  //   icon: Icon(Icons.arrow_back, color: Colors.white),
+                  //   onPressed: () => Navigator.pop(context),
+                  // ),
                   SizedBox(height: 20),
                   Text(
-                    'Welcome Back!',
+                    'The Next Generation',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -205,11 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           // ID Number field
                           Text(
                             'ID Number',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black87,
-                            ),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
                           ),
                           SizedBox(height: 8),
                           TextFormField(
@@ -218,12 +258,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               hintText: 'Enter your Qatar ID',
                               filled: true,
                               fillColor: Colors.grey[100],
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 16),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                             ),
                             keyboardType: TextInputType.number,
                             inputFormatters: [
@@ -231,69 +267,91 @@ class _LoginScreenState extends State<LoginScreen> {
                               LengthLimitingTextInputFormatter(11),
                             ],
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your Qatar ID';
-                              }
-                              if (value.length != 11) {
-                                return 'Qatar ID must be exactly 11 digits';
-                              }
+                              if (value == null || value.isEmpty) return 'Please enter your Qatar ID';
+                              if (value.length != 11) return 'Qatar ID must be exactly 11 digits';
                               return null;
                             },
                           ),
+
+                          if (_isSignup) ...[
+                            SizedBox(height: 16),
+                            Text(
+                              'Email',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
+                            ),
+                            SizedBox(height: 8),
+                            TextFormField(
+                              controller: _emailController,
+                              decoration: InputDecoration(
+                                hintText: 'Enter your email',
+                                filled: true,
+                                fillColor: Colors.grey[100],
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              ),
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (_isSignup && (value == null || value.isEmpty)) return 'Please enter your email';
+                                return null;
+                              },
+                            ),
+                          ],
                           SizedBox(height: 24),
 
-                          // Remember me checkbox
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: _rememberMe,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _rememberMe = value ?? false;
-                                  });
-                                },
-                                activeColor: Color(0xFF00A19C),
-                              ),
-                              Text(
-                                'Remember me',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[700],
+// Only show Remember Me in login mode
+                          if (!_isSignup)
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _rememberMe,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _rememberMe = value ?? false;
+                                    });
+                                  },
+                                  activeColor: Color(0xFF00A19C),
                                 ),
-                              ),
-                            ],
-                          ),
+                                Text(
+                                  'Remember me',
+                                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                                ),
+                              ],
+                            ),
                           SizedBox(height: 32),
 
-                          // Login button
                           SizedBox(
                             width: double.infinity,
                             height: 56,
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _login,
+                              onPressed: _isLoading ? null : (_isSignup ? _signup : _login),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Color(0xFF00A19C),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 elevation: 0,
                               ),
                               child: _isLoading
-                                  ? SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
+                                  ? CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
                                   : Text(
-                                      'Log In',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                                _isSignup ? 'Sign Up' : 'Log In',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(height: 12),
+                          Center(
+                            child: TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isSignup = !_isSignup;
+                                });
+                              },
+                              child: Text(
+                                _isSignup
+                                    ? 'Already have an account? Log in'
+                                    : 'Don\'t have an account? Sign up',
+                                style: TextStyle(color: Color(0xFF00A19C), fontWeight: FontWeight.w500),
+                              ),
                             ),
                           ),
                         ],

@@ -108,8 +108,8 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => StudentHealthProfileScreen(
-                            studentId: widget.studentId,
-                            fatherQatarId: widget.fatherQatarId,
+                            studentId: generateMd5Hash(widget.studentId),
+                            fatherQatarId: generateMd5Hash(widget.fatherQatarId),
                           ),
                         ),
                       );

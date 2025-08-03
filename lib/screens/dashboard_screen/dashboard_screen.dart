@@ -63,6 +63,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final hasSiblings   = sc.hasSiblings;
     final siblingsList  = sc.siblings;
     final notificationProvider = Provider.of<NotificationProvider>(context);
+    final cards = getDashboardCards();
 
     String studentFullName =
         '${studentData['Student Full Name']}';
@@ -307,28 +308,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Expanded(
                           child: selectedCard == null
                               ? Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 20),
-                            child: GridView.builder(
-                              shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
-                              itemCount: dashboardCards.length,
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 4,
-                                mainAxisSpacing: 20,
-                                crossAxisSpacing: 8,
-                                mainAxisExtent: 90,
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: GridView.builder(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: cards.length,
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 4,
+                                  mainAxisSpacing: 20,
+                                  crossAxisSpacing: 8,
+                                  mainAxisExtent: 90,
+                                ),
+                                itemBuilder: (context, index) {
+                                  final card = cards[index];
+                                  return DashboardCardItemWidget(
+                                    image: card.image,
+                                    color: card.color,
+                                    text: card.text,
+                                    onTap: card.onTap,
+                                  );
+                                },
                               ),
-                              itemBuilder: (context, index) {
-                                final card = dashboardCards[index];
-                                return DashboardCardItemWidget(
-                                  image: card.image!,
-                                  color: card.color!,
-                                  text: card.text!,
-                                  onTap: card.onTap!,
-                                );
-                              },
-                            ),
-                          )
+                            )
                               : _buildDetailsView(
                             cardName: selectedCard!,
                             studentData: studentData,
@@ -680,8 +681,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       Get.delete<StudentController>(); // Required: remove it completely from memory
     }
 
-    Get.toNamed(
-      AppRoutes.loginScreen
-    );
+    Get.offAllNamed(AppRoutes.loginScreen);
   }
 }
