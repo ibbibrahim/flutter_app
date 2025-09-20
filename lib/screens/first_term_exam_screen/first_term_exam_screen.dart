@@ -25,8 +25,9 @@ class _FirstTermExamScreenState extends State<FirstTermExamScreen> {
 
     final int termId = Get.arguments['termId'];
     final int studentId = Get.arguments['studentId'];
+    final int sessionId = Get.arguments['sessionId'];
 
-    controller.fetchSubjectResults(studentId: studentId, termId: termId);
+    controller.fetchSubjectResults(studentId: studentId, termId: termId, sessionId: sessionId);
   }
 
   @override

@@ -24,8 +24,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 1️⃣ Initialize Firebase & push notifications
-  await Firebase.initializeApp();
-  await FirebaseApi().initNotifications();
+  if (!kIsWeb) {
+    await Firebase.initializeApp();
+    await FirebaseApi().initNotifications();
+  }
 
   // 2️⃣ Lock to portrait, init logger & intl, then runApp
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
@@ -74,6 +76,16 @@ class MyApp extends StatelessWidget {
       // },
       //
       // But once everything’s in AppRoutes.pages, you can remove `routes:` entirely.
+
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(1.0), // ✅ new way to lock font size
+          ),
+          child: child!,
+        );
+      },
+
     );
   }
 }

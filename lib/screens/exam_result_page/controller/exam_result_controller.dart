@@ -20,12 +20,13 @@ class ExamResultController extends GetxController {
 
   Rx<ExamResultModel> examResultModelObj;
   var isLoadingProgress = true.obs;
+  final isLoadingEndOfTerm = false.obs;
 
 
-  Future<void> fetchSubjectResults({required int studentId, required int termId}) async {
+  Future<void> fetchSubjectResults({required int studentId, required int termId, required int sessionId}) async {
     try {
       final action = 'getResultsForStudent';
-      final url = Uri.parse("https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash(action)}&StudentID=$studentId&TermID=$termId");
+      final url = Uri.parse("https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash(action)}&StudentID=$studentId&TermID=$termId&SessionID=$sessionId");
 
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -44,12 +45,18 @@ class ExamResultController extends GetxController {
     }
   }
 
-  Future<void> fetchTermWiseResults({required int studentId}) async {
+  Future<void> fetchTermWiseResults({
+    required int studentId,
+    required int sessionId,
+  }) async {
     try {
       isLoadingProgress.value = true;
 
       final termAction = 'getTermsForCurrentSession';
-      final termUrl = Uri.parse("https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash(termAction)}");
+      final termUrl = Uri.parse(
+        "https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?"
+            "Action=${generateMd5Hash(termAction)}&SessionID=$sessionId",
+      );
 
       final termResponse = await http.get(termUrl);
       if (termResponse.statusCode == 200) {
@@ -62,24 +69,35 @@ class ExamResultController extends GetxController {
             final termId = term['TermID'];
             final termName = term['TermDescription'];
 
-            final resultUrl = Uri.parse("https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash('getTermWiseOverallResults')}&StudentID=$studentId&TermID=$termId");
+            final resultUrl = Uri.parse(
+              "https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?"
+                  "Action=${generateMd5Hash('getTermWiseOverallResults')}"
+                  "&StudentID=$studentId&TermID=$termId&SessionID=$sessionId",
+            );
 
             final resultResponse = await http.get(resultUrl);
             if (resultResponse.statusCode == 200) {
               final resultBody = jsonDecode(resultResponse.body);
               if (resultBody['status'] == 'success') {
-                final result = resultBody['data'][0];
-                final percentage = double.tryParse(result['OverallPercentage'].toString()) ?? 0;
-                final formattedScore = "${result['OverallFormativePercentage']} / ${result['OverallSummativePercentage']}";
+                final resultList = resultBody['data'];
 
-                progressBarItems.add(ExamprogressbarItemModel(
-                  examName: Rx(termName),
-                  id: Rx(termId.toString()),
-                  percentage: Rx(percentage),
-                  overallFormative: Rx("${result['OverallFormativePercentage']}"),
-                  overallSummative: Rx("${result['OverallSummativePercentage']}"),
-                  overallPercentage: Rx("${result['OverallPercentage']}"),
-                ));
+                // ✅ Check that resultList is not null and not empty
+                if (resultList != null && resultList is List && resultList.isNotEmpty) {
+                  final result = resultList[0];
+
+                  final percentage = double.tryParse(result['OverallPercentage'].toString()) ?? 0;
+
+                  progressBarItems.add(ExamprogressbarItemModel(
+                    examName: Rx(termName),
+                    id: Rx(termId.toString()),
+                    percentage: Rx(percentage),
+                    overallFormative: Rx("${result['OverallFormativePercentage']}"),
+                    overallSummative: Rx("${result['OverallSummativePercentage']}"),
+                    overallPercentage: Rx("${result['OverallPercentage']}"),
+                    sectionName: Rx("${result['SectionName'] ?? ''}"),
+                    sessionName: Rx("${result['AcademicSessionShortName'] ?? ''}"),
+                  ));
+                }
               }
             }
           }
@@ -91,14 +109,20 @@ class ExamResultController extends GetxController {
     } catch (e) {
       print('Error fetching term-wise results: $e');
     } finally {
-      isLoadingProgress.value = false; // <- set to false even if there's an error
+      isLoadingProgress.value = false;
     }
   }
 
-  Future<void> fetchEndOfTermResult({required int studentId}) async {
+  Future<void> fetchEndOfTermResult({
+    required int studentId,
+    required int sessionId,
+  }) async {
     try {
       final action = 'getEndOfTermResults';
-      final url = Uri.parse("https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash(action)}&StudentID=$studentId");
+      final url = Uri.parse(
+        "https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?"
+            "Action=${generateMd5Hash(action)}&StudentID=$studentId&SessionID=$sessionId",
+      );
 
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -106,7 +130,6 @@ class ExamResultController extends GetxController {
         if (body['status'] == 'success') {
           var data = body['data'];
           if (data.isNotEmpty) {
-            print(data);
             final result = EndOfTermResult.fromJson(data[0]);
             examResultModelObj.value.endOfTermResult.value = result;
             examResultModelObj.refresh();

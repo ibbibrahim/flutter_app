@@ -58,14 +58,17 @@ class ExamResultTabContainerScreen
                           fontWeight: FontWeight.w400),
                       indicatorColor: theme.colorScheme.primary,
                       tabs: [
-                        Tab(child: Text("lbl_exam_schedule".tr)),
+                        //Tab(child: Text("lbl_exam_schedule".tr)),
                         Tab(child: Text("lbl_result".tr))
                       ])),
               Expanded(
                   // height: 747.v,
                   child: TabBarView(
                       controller: controller.tabviewController,
-                      children: [ExamExamScheduleScreen(),ExamResultPage()]))
+                      children: [
+                        //ExamExamScheduleScreen(),
+                        ExamResultPage()]
+                  ))
             ]),
           )
         ]));

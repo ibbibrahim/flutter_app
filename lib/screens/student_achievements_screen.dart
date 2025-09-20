@@ -35,7 +35,6 @@ class _StudentAchievementsScreenState extends State<StudentAchievementsScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print(data);
         setState(() {
           achievementsData = Map<String, dynamic>.from(data);
           isLoading = false;
@@ -53,68 +52,70 @@ class _StudentAchievementsScreenState extends State<StudentAchievementsScreen> {
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       body: Column(
         children: [
+          // Header Bar
           Container(
             height: MediaQuery.of(context).orientation == Orientation.portrait
-                ? MediaQuery.of(context).size.height * 0.1
+                ? MediaQuery.of(context).size.height * 0.12
                 : MediaQuery.of(context).size.height * 0.2,
             decoration: BoxDecoration(
               color: Colors.blueAccent,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(10.0),
-                bottomRight: Radius.circular(10.0),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(16.0),
+                bottomRight: Radius.circular(16.0),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(2.0, 40.0, 16.0, 16.0),
+              padding: const EdgeInsets.fromLTRB(16.0, 56.0, 16.0, 16.0),
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  SizedBox(width: 8.0),
+                  const SizedBox(width: 8.0),
                   Text(
                     'Student Achievements',
-                    style: TextStyle(
+                    style: textTheme.headlineSmall?.copyWith(
                       color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
           ),
+
+          // Body
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(16.0),
               child: isLoading
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : hasError
-                  ? Center(child: Text("Error loading achievements data"))
+                  ? const Center(child: Text("Error loading achievements data"))
                   : SingleChildScrollView(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildAchievementSection(
-                      'Leadership Roles',
-                      achievementsData['LeadershipRoles'] ?? [],
-                    ),
-                    _buildAchievementSection(
-                      'Awards and Appreciations',
-                      achievementsData['AwardsAndAppreciations'] ?? [],
-                    ),
-                    _buildAchievementSection(
-                      'Events and Awards',
-                      achievementsData['EventsAndAwards'] ?? [],
-                    ),
+                    _buildAchievementCard(context, "Leadership Roles", achievementsData['LeadershipRoles'] ?? []),
+                    _buildAchievementCard(context, "Awards and Appreciations", achievementsData['AwardsAndAppreciations'] ?? []),
+                    _buildAchievementCard(context, "Events and Awards", achievementsData['EventsAndAwards'] ?? []),
                   ],
                 ),
               ),
@@ -125,39 +126,66 @@ class _StudentAchievementsScreenState extends State<StudentAchievementsScreen> {
     );
   }
 
-  Widget _buildAchievementSection(String title, List<dynamic> data) {
+  Widget _buildAchievementCard(BuildContext context, String title, List<dynamic> data) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: colorScheme.surfaceVariant,
+      margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueAccent,
-              ),
+            // Title
+            Row(
+              children: [
+                Icon(Icons.star_rounded, size: 20, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: textTheme.titleLarge?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16),
+
+            // Data Table
             data.isEmpty
-                ? Text('No Data Available', style: TextStyle(color: Colors.grey))
+                ? Text('No Data Available', style: TextStyle(color: Colors.grey.shade600))
                 : Column(
               children: data.map<Widget>((item) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    border: Border.all(color: colorScheme.outlineVariant),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (title == 'Leadership Roles')
-                        Text('Role: ${item['LeadershipRole']}, Session: ${item['Session']}'),
-                      if (title == 'Awards and Appreciations')
-                        Text('Type: ${item['AppreciationType']}, Awarded on: ${item['AwardingDate']}'),
-                      if (title == 'Events and Awards')
-                        Text('Event: ${item['Event']}, Role: ${item['Role']}, Award: ${item['Award']}'),
-                      SizedBox(height: 4),
+                      if (title == 'Leadership Roles') ...[
+                        _buildItemRow("Role", item['LeadershipRole']),
+                        _buildItemRow("Session", item['Session']),
+                      ],
+                      if (title == 'Awards and Appreciations') ...[
+                        _buildItemRow("Type", item['AppreciationType']),
+                        _buildItemRow("Awarded On", item['AwardingDate']),
+                      ],
+                      if (title == 'Events and Awards') ...[
+                        _buildItemRow("Event", item['Event']),
+                        _buildItemRow("Role", item['Role']),
+                        _buildItemRow("Award", item['Award']),
+                      ],
                     ],
                   ),
                 );
@@ -165,6 +193,34 @@ class _StudentAchievementsScreenState extends State<StudentAchievementsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildItemRow(String label, String? value) {
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "$label: ",
+            style: textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value ?? 'N/A',
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w400,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

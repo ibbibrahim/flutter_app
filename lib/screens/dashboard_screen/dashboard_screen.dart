@@ -260,35 +260,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                     image: DecorationImage(
                                       fit: BoxFit.cover,
-                                      image: AssetImage('assets/images/Banner.png'), // Replace with your image path
+                                      image: AssetImage('assets/images/backToSchool1.jpg'),
                                     ),
                                   ),
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 20),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          "Transforming Information to Knowledge,Knowledge to Wisdom.",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.amber,
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                        ),
-                                        SizedBox(height: 10),
-                                        // ElevatedButton(
-                                        //   style: ElevatedButton.styleFrom(
-                                        //     backgroundColor: Colors.black.withOpacity(0.6),
-                                        //     padding: EdgeInsets.symmetric(horizontal: 16),
-                                        //   ),
-                                        //   onPressed: () {},
-                                        //   child: Text("Check Now"),
-                                        // ),
-                                      ],
-                                    ),
-                                  ),
+                                  // You can remove this entire Column if there's no other content
+                                  // or keep it if you want to add something later
+                                  // child: Padding(
+                                  //   padding: EdgeInsets.symmetric(horizontal: 20),
+                                  //   child: Column(
+                                  //     mainAxisAlignment: MainAxisAlignment.end,
+                                  //     crossAxisAlignment: CrossAxisAlignment.center,
+                                  //     children: [
+                                  //       // Text removed
+                                  //     ],
+                                  //   ),
+                                  // ),
                                 ),
                               );
                             },

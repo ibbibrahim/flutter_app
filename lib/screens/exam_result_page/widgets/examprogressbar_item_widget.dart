@@ -25,9 +25,8 @@ class ExamprogressbarItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final studentData = Get.find<StudentController>().student;
-    final academicSession = studentData['AcademicSession'] ?? '2024-2025';
-    final section = studentData['Section'] ?? '';
+    final section = examprogressbarItemModelObj.sectionName?.value ?? '';
+    final academicSession = examprogressbarItemModelObj.sessionName?.value ?? '';
 
     return Material(
       color: Colors.transparent,

@@ -8,8 +8,11 @@ import 'package:login_portal/controllers/student_controller.dart';
 import 'package:login_portal/screens/swipeable_calendar_view.dart';
 import 'package:login_portal/utils/funtions.dart';
 
+import 'dashboard_screen/dashboard_screen.dart';
+import 'home_container_screen/controller/bottom_controller.dart';
+
 class AttendanceScreen extends StatefulWidget {
-  AttendanceScreen({Key? key}) : super(key: key);            // constructor is now empty
+  AttendanceScreen({Key? key}) : super(key: key);
 
   @override
   _AttendanceScreenState createState() => _AttendanceScreenState();
@@ -17,29 +20,60 @@ class AttendanceScreen extends StatefulWidget {
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
   List<Map<String, dynamic>> attendanceData = [];
+  List<Map<String, dynamic>> sessions = [];
+  String selectedSessionId = '';
   bool isLoading = true;
   bool hasError = false;
 
   @override
   void initState() {
     super.initState();
-    fetchAttendanceData();
+    loadInitialData();
+  }
+
+  Future<void> loadInitialData() async {
+    await fetchSessions();
+    await fetchAttendanceData();
+  }
+
+  Future<void> fetchSessions() async {
+    try {
+      final response = await http.get(Uri.parse(
+        'https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash('getAcademicSessions')}',
+      ));
+
+      if (response.statusCode == 200) {
+        final List data = json.decode(response.body);
+        if (data.isNotEmpty) {
+          setState(() {
+            sessions = List<Map<String, dynamic>>.from(data);
+            selectedSessionId = data.last['id'].toString(); // default to current
+          });
+        }
+      }
+    } catch (e) {
+      print("Error loading sessions: $e");
+    }
   }
 
   Future<void> fetchAttendanceData() async {
+    setState(() {
+      isLoading = true;
+      hasError = false;
+    });
 
-    final sc        = Get.find<StudentController>();
+    final sc = Get.find<StudentController>();
     final studentId = sc.student['StudentID'].toString();
 
     try {
       final response = await http.get(
         Uri.parse(
-          'https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash('getStudentAttendance')}&student_id=${studentId}',
+          'https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash('getStudentAttendance')}&student_id=$studentId&session_id=$selectedSessionId',
         ),
       );
+
       if (response.statusCode == 200) {
         final List data = json.decode(response.body);
-        print('Token Refreshed: $data');
         setState(() {
           attendanceData = List<Map<String, dynamic>>.from(data);
           isLoading = false;
@@ -80,9 +114,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 children: [
                   IconButton(
                     icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: handleBackButton,
                   ),
                   SizedBox(width: 8.0),
                   Text(
@@ -97,6 +129,47 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               ),
             ),
           ),
+
+          // Session dropdown
+          if (sessions.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+              child: Row(
+                children: [
+                  Text("Session:", style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: DropdownButton<String>(
+                      value: selectedSessionId,
+                      isExpanded: true,
+                      items: sessions.map((session) {
+                        final isSelected = session['id'].toString() == selectedSessionId;
+                        return DropdownMenuItem<String>(
+                          value: session['id'].toString(),
+                          child: Text(
+                            session['name'],
+                            style: TextStyle(
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? Colors.blue : Colors.black,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            selectedSessionId = value;
+                          });
+                          fetchAttendanceData();
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Attendance data
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(12.0),
@@ -104,6 +177,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   ? Center(child: CircularProgressIndicator())
                   : hasError
                   ? Center(child: Text("Error loading attendance data"))
+                  : attendanceData.isEmpty
+                  ? Center(child: Text("No attendance data available for this session."))
                   : SingleChildScrollView(
                 child: _buildAttendanceTable(),
               ),
@@ -118,17 +193,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Padding(
-        //   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
-        //   child: Text(
-        //     'Attendance Record',
-        //     style: TextStyle(
-        //       fontSize: 18,
-        //       fontWeight: FontWeight.bold,
-        //       color: Colors.blueAccent,
-        //     ),
-        //   ),
-        // ),
         ListView.builder(
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
@@ -153,7 +217,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ),
                     ),
                   );
-
                 },
                 child: Row(
                   children: [
@@ -184,12 +247,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              '$present',
-                              style: TextStyle(
-                                  color: Colors.green, fontWeight: FontWeight.bold),
-                            ),
-                            Text('Present', style: TextStyle(color: Colors.green)),
+                            Text('$present',
+                                style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold)),
+                            Text('Present',
+                                style: TextStyle(color: Colors.green)),
                           ],
                         ),
                       ),
@@ -205,11 +268,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              '$absent',
-                              style: TextStyle(
-                                  color: Colors.red, fontWeight: FontWeight.bold),
-                            ),
+                            Text('$absent',
+                                style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold)),
                             Text('Absent', style: TextStyle(color: Colors.red)),
                           ],
                         ),
@@ -223,6 +285,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ),
       ],
     );
+  }
+
+  void handleBackButton() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      final bottomCtrl = Get.find<BottomBarController>();
+      bottomCtrl.selectedIndex.value = 0;
+      bottomCtrl.onChange(DashboardScreen());
+      bottomCtrl.update();
+    }
   }
 
 }

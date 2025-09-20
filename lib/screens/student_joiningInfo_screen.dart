@@ -1,52 +1,112 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-class FeeInvoiceScreen extends StatefulWidget {
+class StudentJoiningInfoScreen extends StatefulWidget {
   final String studentId;
-  final String sessionId;
-  final String feeTypeId;
+  final String fatherQatarId;
 
-  FeeInvoiceScreen({
+  StudentJoiningInfoScreen({
     required this.studentId,
-    required this.sessionId,
-    required this.feeTypeId,
+    required this.fatherQatarId,
   });
 
   @override
-  _FeeInvoiceScreenState createState() => _FeeInvoiceScreenState();
+  _StudentJoiningInfoScreenState createState() => _StudentJoiningInfoScreenState();
 }
 
-class _FeeInvoiceScreenState extends State<FeeInvoiceScreen> {
+class _StudentJoiningInfoScreenState extends State<StudentJoiningInfoScreen> {
   late final WebViewController controller;
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+
+    // Prepare the POST request
+    final url = Uri.parse('https://tngqatar.online/update/joininfo.php');
+    final headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    final body = 'sid=${widget.studentId}&qid=${widget.fatherQatarId}';
+    final bodyBytes = Uint8List.fromList(body.codeUnits);
+
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageFinished: (String url) async {
             await controller.runJavaScript('''
-              const meta = document.createElement('meta');
+              document.querySelector('meta[name="viewport"]')?.remove();
+
+              var meta = document.createElement('meta');
               meta.name = 'viewport';
-              meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+              meta.content = 'width=device-width, initial-scale=0.6, maximum-scale=2.0';
               document.getElementsByTagName('head')[0].appendChild(meta);
+
+              var style = document.createElement('style');
+              style.textContent = `
+                body {
+                  margin: 0 !important;
+                  padding: 8px !important;
+                  width: 100% !important;
+                  box-sizing: border-box !important;
+                  transform-origin: top left !important;
+                  zoom: 1 !important;
+                }
+
+                table {
+                  width: 100% !important;
+                  max-width: 100% !important;
+                  margin: 0 !important;
+                  box-sizing: border-box !important;
+                  font-size: 14px !important;
+                  transform-origin: top left !important;
+                }
+
+                td, th {
+                  padding: 4px !important;
+                  word-break: break-word !important;
+                }
+
+                * {
+                  max-width: 100% !important;
+                  box-sizing: border-box !important;
+                }
+              `;
+              document.head.appendChild(style);
+
+              document.body.style.display = 'none';
+              document.body.offsetHeight;
+              document.body.style.display = '';
+
+              function adjustContent() {
+                const content = document.documentElement;
+                const scale = window.innerWidth / content.scrollWidth;
+                if (scale < 1) {
+                  document.body.style.transform = `scale(\${scale})`;
+                  document.body.style.transformOrigin = 'top left';
+                  document.body.style.width = `\${100 / scale}%`;
+                }
+              }
+
+              adjustContent();
+              window.addEventListener('resize', adjustContent);
             ''');
+
             setState(() {
               isLoading = false;
             });
           },
         ),
       )
-      ..setBackgroundColor(Color(100)) // Adjust the zoom level if needed
-      ..loadRequest(Uri.parse(
-        'https://pers.tngqatar.online/Module/Fee/StudentInvoice.php'
-            '?StudentID=${widget.studentId}'
-            '&SessionID=${widget.sessionId}'
-            '&FeeTypeID=${widget.feeTypeId}',
-      ));
+      ..setBackgroundColor(Color(100))
+      ..loadRequest(
+        url,
+        method: LoadRequestMethod.post,
+        headers: headers,
+        body: bodyBytes, // Now properly typed as Uint8List
+      );
   }
 
   @override
@@ -82,7 +142,7 @@ class _FeeInvoiceScreenState extends State<FeeInvoiceScreen> {
                   ),
                   SizedBox(width: 16.0),
                   Text(
-                    'Fee Invoice',
+                    'Joining Information',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,

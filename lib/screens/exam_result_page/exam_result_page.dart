@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:login_portal/screens/exam_result_page/widgets/endoftermprogressbar_item_widget.dart';
 
 import '../../controllers/student_controller.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/custom_text_style.dart';
+import '../../utils/funtions.dart';
 import '../../widgets/insulin_chart.dart';
 import '../exam_result_page/widgets/examprogressbar_item_widget.dart';
 import '../exam_result_page/widgets/subjectslist_item_widget.dart';
@@ -50,17 +54,46 @@ class ExamResultPage extends StatefulWidget {
 class _ExamResultPageState extends State<ExamResultPage> {
   final ExamResultController controller =
       Get.put(ExamResultController(ExamResultModel().obs));
+  List<Map<String, dynamic>> sessions = [];
+  int selectedSessionId = 0;
 
   @override
   void initState() {
     super.initState();
+    loadInitialData();
+  }
 
+  Future<void> loadInitialData() async {
     final studentData = Get.find<StudentController>().student;
     final studentId = studentData['StudentID'];
 
-    // controller.fetchSubjectResults(studentId: studentId, termId: 17);
-    controller.fetchTermWiseResults(studentId: studentId);
-    controller.fetchEndOfTermResult(studentId: studentId);
+    await fetchSessions(); // wait for sessions and selectedSessionId
+
+    // ✅ Now that selectedSessionId is set, call your controller methods
+    controller.fetchTermWiseResults(
+        studentId: studentId, sessionId: selectedSessionId);
+    controller.fetchEndOfTermResult(
+        studentId: studentId, sessionId: selectedSessionId);
+  }
+
+  Future<void> fetchSessions() async {
+    try {
+      final response = await http.get(Uri.parse(
+        'https://pers.tngqatar.online/Controler/Public/PerspectiveApi.php?Action=${generateMd5Hash('getAcademicSessions')}',
+      ));
+
+      if (response.statusCode == 200) {
+        final List data = json.decode(response.body);
+        if (data.isNotEmpty) {
+          setState(() {
+            sessions = List<Map<String, dynamic>>.from(data);
+            selectedSessionId = int.parse(data.last['id'].toString());
+          });
+        }
+      }
+    } catch (e) {
+      print("Error loading sessions: $e");
+    }
   }
 
   @override
@@ -74,8 +107,62 @@ class _ExamResultPageState extends State<ExamResultPage> {
           padding: EdgeInsets.only(left: 20.h, top: 24.v, right: 20.h),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (sessions.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.only(bottom: 16.v, right: 20.h),
+                child: Row(
+                  children: [
+                    Text("Session:", style: CustomTextStyles.titleLarge22),
+                    SizedBox(width: 12.h),
+                    Expanded(
+                      child: DropdownButton<int>(
+                        value: selectedSessionId,
+                        isExpanded: true,
+                        icon: Icon(Icons.arrow_drop_down),
+                        underline: Container(
+                          height: 1,
+                          color: Colors.grey.shade400,
+                        ),
+                        items: sessions.map((session) {
+                          final isSelected =
+                              int.parse(session['id'].toString()) == selectedSessionId;
+                          return DropdownMenuItem<int>(
+                            value: int.parse(session['id'].toString()),
+                            child: Text(
+                              session['name'],
+                              style: TextStyle(
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: isSelected ? Colors.blue : Colors.black,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          if (value != null && value != selectedSessionId) {
+                            setState(() {
+                              selectedSessionId = value;
+                            });
+
+                            final studentId = Get.find<StudentController>()
+                                .student['StudentID'];
+
+                            // Reload results for selected session
+                            controller.fetchTermWiseResults(
+                                studentId: studentId, sessionId: value);
+                            controller.fetchEndOfTermResult(
+                                studentId: studentId, sessionId: value);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Text("lbl_overall_results".tr,
                 style: CustomTextStyles.titleLarge22),
+
             SizedBox(height: 19.v),
             Obx(() {
               if (controller.isLoadingProgress.value) {
@@ -189,29 +276,28 @@ class _ExamResultPageState extends State<ExamResultPage> {
             //     ],
             //   );
             // }),
-            Obx(() {
-              final endResult =
-                  controller.examResultModelObj.value.endOfTermResult.value;
-
-              if (endResult == null) {
-                return Center(child: CircularProgressIndicator());
-              }
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("End of Term", style: CustomTextStyles.titleLarge22),
-                  SizedBox(height: 12.v),
-                  EndOfTermCombinedProgressbarWidget(
-                    overallT1: endResult.overallT1,
-                    overallT2: endResult.overallT2,
-                    endOfTerm: endResult.endOfTerm,
-                  ),
-                  SizedBox(height: 24.v),
-                ],
-              );
-
-            })
+            // Obx(() {
+            //   final endResult =
+            //       controller.examResultModelObj.value.endOfTermResult.value;
+            //
+            //   if (endResult == null) {
+            //     return Center(child: Text("No end-of-term results available."));
+            //   }
+            //
+            //   return Column(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: [
+            //       Text("End of Term", style: CustomTextStyles.titleLarge22),
+            //       SizedBox(height: 12.v),
+            //       EndOfTermCombinedProgressbarWidget(
+            //         overallT1: endResult.overallT1,
+            //         overallT2: endResult.overallT2,
+            //         endOfTerm: endResult.endOfTerm,
+            //       ),
+            //       SizedBox(height: 24.v),
+            //     ],
+            //   );
+            // })
 
             // Obx(() {
             //   final endResult =
@@ -258,47 +344,7 @@ class _ExamResultPageState extends State<ExamResultPage> {
     Get.toNamed(AppRoutes.firstTermExamScreen, arguments: {
       'termId': termId,
       'studentId': studentId,
+      'sessionId': selectedSessionId
     });
-  }
-
-  Widget _buildDynamicLegend(List<ChartData> chartData) {
-    // Split chartData into chunks of 2
-    List<List<ChartData>> rows = [];
-    for (int i = 0; i < chartData.length; i += 2) {
-      rows.add(chartData.sublist(
-        i,
-        i + 2 > chartData.length ? chartData.length : i + 2,
-      ));
-    }
-
-    return Column(
-      children: [
-        for (var row in rows) ...[
-          _buildLegendRow(row),
-          SizedBox(height: 10.v),
-        ]
-      ],
-    );
-  }
-
-  Widget _buildLegendRow(List<ChartData> rowData) {
-    return Align(
-      alignment: Alignment.center,
-      child: Container(
-        height: 40.v,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.only(left: 31.h, right: 39.h),
-          itemCount: rowData.length,
-          separatorBuilder: (context, index) => SizedBox(width: 56.h),
-          itemBuilder: (context, index) {
-            return SubjectslistItemWidget(
-              color: rowData[index].color,
-              text: rowData[index].fullLabel,
-            );
-          },
-        ),
-      ),
-    );
   }
 }

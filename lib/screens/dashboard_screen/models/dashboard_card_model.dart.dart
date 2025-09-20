@@ -5,6 +5,7 @@ import 'package:login_portal/screens/attendance_screen_copy.dart';
 import 'package:login_portal/screens/basic_information_screen.dart';
 import 'package:login_portal/screens/exam_result_tab_container_screen/exam_result_tab_container_screen.dart';
 import 'package:login_portal/screens/health_profile_screen.dart';
+import 'package:login_portal/screens/student_joiningInfo_screen.dart';
 import 'package:login_portal/utils/image_constant.dart';
 
 import '../../../utils/funtions.dart';
@@ -48,6 +49,17 @@ List<DashboardCardModel> getDashboardCards() {
       },
     ),
     DashboardCardModel(
+      text: "Joining Info",
+      image: ImageConstant.imgGroupPrimary,
+      color: Colors.amber.shade100,
+      onTap: () {
+        Get.to(() => StudentJoiningInfoScreen(
+          studentId: sc.student['StudentID'].toString(),
+          fatherQatarId: sc.student['FatherQatarID'].toString(),
+        ));
+      },
+    ),
+    DashboardCardModel(
       text: "Parent Info",
       image: ImageConstant.community,
       color: Colors.pink.shade100,
@@ -76,7 +88,7 @@ List<DashboardCardModel> getDashboardCards() {
     ),
     DashboardCardModel(
       text: "Achievements",
-      image: ImageConstant.fees,
+      image: ImageConstant.imgTrash,
       color: Colors.orange.shade100,
       onTap: () {
         Get.to(() => StudentAchievementsScreen(
@@ -124,7 +136,7 @@ List<DashboardCardModel> getDashboardCards() {
       },
     ),
     DashboardCardModel(
-      text: "Exam",
+      text: "Result",
       image: ImageConstant.exam,
       color: Colors.red.shade100,
       onTap: () {
@@ -132,6 +144,7 @@ List<DashboardCardModel> getDashboardCards() {
         Get.to(() => ExamResultTabContainerScreen());
       },
     ),
+
     if (sc.student['Bus'] != null)
       DashboardCardModel(
         text: "Bus",

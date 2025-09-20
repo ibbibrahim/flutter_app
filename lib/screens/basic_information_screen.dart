@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import 'package:login_portal/screens/student_address_update_screen.dart';
 
 import '../controllers/student_controller.dart';
+import 'dashboard_screen/dashboard_screen.dart';
+import 'home_container_screen/controller/bottom_controller.dart';
 
 class BasicInformationScreen extends StatefulWidget {
   const BasicInformationScreen({Key? key}) : super(key: key);
@@ -58,7 +60,7 @@ class _BasicInformationScreenState extends State<BasicInformationScreen> {
                       IconButton(
                         icon: Icon(Icons.arrow_back,
                             color: colorScheme.onPrimary),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: handleBackButton,
                       ),
                       const SizedBox(width: 8.0),
                       Text(
@@ -123,6 +125,10 @@ class _BasicInformationScreenState extends State<BasicInformationScreen> {
                             'value': studentData['QID']
                           },
                           {
+                            'icon': Icons.class_,
+                            'value': studentData['Section']
+                          },
+                          {
                             'icon': Icons.calendar_today,
                             'value': studentData['DOB']
                           },
@@ -136,6 +142,12 @@ class _BasicInformationScreenState extends State<BasicInformationScreen> {
                                 ? 'Islam'
                                 : 'Other'
                           },
+
+                          {
+                            'icon': Icons.public,
+                            'value': studentData['Nationality']
+                          },
+
                         ],
                         studentData),
                     const SizedBox(height: 16),
@@ -515,5 +527,16 @@ class _BasicInformationScreenState extends State<BasicInformationScreen> {
         ),
       ),
     );
+  }
+
+  void handleBackButton() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      final bottomCtrl = Get.find<BottomBarController>();
+      bottomCtrl.selectedIndex.value = 0;
+      bottomCtrl.onChange(DashboardScreen());
+      bottomCtrl.update();
+    }
   }
 }
